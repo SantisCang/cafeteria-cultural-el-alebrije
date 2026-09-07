@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café Cultural El Alebrije</title>
+    <meta name="description" content="Café Cultural El Alebrije: desayunos, comida casera, eventos culturales, podcast y música en vivo.">
+    <link rel="icon" type="image/png" href="imagenes/logo.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="toast-carrito" id="toast-carrito">
+        <span class="toast-check">✓</span>
+        <span id="toast-carrito-texto">Agregado al carrito</span>
+    </div>
+
+    <header class="header" id="inicio">
+        <img class="bg" src="imagenes/bg.png" alt="">
+        <div class="menu">
+            <div class="menu-inner container">
+                <a href="#inicio" class="logo">
+                    <img src="imagenes/logo.png" alt="Café Cultural El Alebrije" class="logo-img">
+                </a>
+                <input type="checkbox" id="menu-toggle">
+                <label for="menu-toggle">
+                    <img src="imagenes/menu.png" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#noticias">Noticias</a></li>
+                        <li><a href="#promo-desayuno" class="nav-promo">Promociones</a></li>
+                        <li><a href="#nosotros">Nosotros</a></li>
+                        <li><a href="#productos">Menú</a></li>
+                        <li><a href="#podcast">Podcast</a></li>
+                        <li><a href="#videos">Videos</a></li>
+                        <li><a href="#ubicacion">Ubicación</a></li>
+                    </ul>
+                </nav>
+                <div>
+                    <ul class="nav-actions">
+                        <li>
+                            <button type="button" id="dark-mode-toggle" class="theme-toggle" aria-label="Cambiar a modo oscuro" aria-pressed="false" title="Modo oscuro">
+                                <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.75 15.5A9.72 9.72 0 0 1 18 16c-5.5 0-10-4.5-10-10 0-1.32.26-2.58.73-3.73a.999.999 0 0 0-1.26-1.29A10.99 10.99 0 0 0 1 12c0 6.08 4.92 11 11 11a10.99 10.99 0 0 0 10.02-6.47.999.999 0 0 0-.27-1.03Z"/></svg>
+                                <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4a1 1 0 0 1-1-1V1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Zm10-8a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm12.66-6.66a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 1 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0ZM7.76 17.66a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 1 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0Zm11.9 1.42a1 1 0 0 1-1.42 0l-1.41-1.42a1 1 0 1 1 1.41-1.41l1.42 1.41a1 1 0 0 1 0 1.42ZM6.34 6.34a1 1 0 0 1-1.41 0L3.51 4.93a1 1 0 0 1 1.42-1.42l1.41 1.42a1 1 0 0 1 0 1.41ZM12 6a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"/></svg>
+                            </button>
+                        </li>
+                        <li class="submenu">
+                            <img src="imagenes/car.svg" id="img-carrito" alt="carrito">
+                            <div id="carrito">
+                                <div class="carrito-lista-scroll">
+                                    <table id="lista-carrito">
+                                        <thead>
+                                            <tr>
+                                                <th>Imagen</th>
+                                                <th>Nombre</th>
+                                                <th>Precio</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <p id="carrito-vacio" class="carrito-vacio">Tu carrito está vacío.</p>
+                                <div class="carrito-total">
+                                    <span>Total</span>
+                                    <span id="carrito-total-monto">$0</span>
+                                </div>
+                                <div class="carrito-acciones">
+                                    <a href="#" id="vaciar-carrito" class="btn-3 btn-vaciar">Vaciar Carrito</a>
+                                    <a href="#" id="enviar-pedido" class="btn-enviar-pedido" target="_blank" rel="noopener">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39c1.45.79 3.08 1.21 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.76 13.98c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.13.11-1.83-.12-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.79-4.17-4.94-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.28.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.29.36-.42.49-.14.14-.28.29-.12.57.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.61-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.87.27.14.45.2.51.32.07.12.07.68-.17 1.35z"/></svg>
+                                        Mandar pedido
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="header-content container">
+
+            <div class="header-txt">
+                <h1><span>¡Bienvenida/o a El Alebrije,</span> tu café cultural!</h1>
+                <p>
+                    Un rincón para desayunar rico, tomar el mejor café y disfrutar de la vibra, música
+                    y buenas pláticas. Aquí cada taza cuenta una historia.
+                </p>
+                <a href="#nosotros" class="btn-1">Conócenos</a>
+            </div>
+            <div class="header-img">
+                <img src="imagenes/comida1.png" alt="Platillo especial de la casa">
+            </div>
+        </div>
+
+    </header>
+
+
+    <section class="noticias container" id="noticias">
+        <div class="noticias-heading">
+            <div class="noticias-heading-left">
+                <span class="eyebrow noticias-eyebrow">📌 No te lo pierdas</span>
+                <h2>Noticias y próximos eventos</h2>
+                <p>Música en vivo, exposiciones y avisos importantes de Café Cultural El Alebrije.</p>
+            </div>
+            <button type="button" class="noticias-admin-btn" id="noticias-admin-btn">✏️ Administrar noticias</button>
+        </div>
+
+        <!--
+            Las tarjetas de esta sección se generan automáticamente desde script.js,
+            a partir de la lista NOTICIAS que está al principio del archivo.
+            También se pueden agregar, editar o borrar desde el botón "Administrar noticias"
+            de aquí arriba (ver la nota completa dentro de script.js).
+        -->
+        <div class="noticias-grid" id="noticias-grid"></div>
+        <p class="noticias-vacio" id="noticias-vacio" hidden>Por ahora no hay noticias publicadas. ¡Vuelve pronto!</p>
+    </section>
+
+    <div class="noticias-modal" id="noticias-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="noticias-modal-close" aria-label="Cerrar">✕</button>
+            <h3>📰 Administrar noticias</h3>
+            <p class="noticias-modal-sub">
+                Agrega, edita o elimina lo que se muestra en la sección de Noticias. Los cambios se
+                guardan en este navegador y se ven de inmediato en esta página.
+            </p>
+
+            <div class="noticias-modal-lista" id="noticias-modal-lista"></div>
+
+            <button type="button" class="noticias-modal-agregar" id="noticias-modal-agregar">+ Agregar noticia</button>
+
+            <div class="noticias-modal-acciones">
+                <button type="button" class="noticias-modal-copiar" id="noticias-modal-copiar">Copiar código para el sitio</button>
+                <button type="button" class="pedido-modal-enviar noticias-modal-guardar" id="noticias-modal-guardar">Guardar cambios</button>
+            </div>
+            <p class="noticias-modal-copiado" id="noticias-modal-copiado">✓ Código copiado. Pégalo en script.js (donde dice NOTICIAS) para que se vea igual para todas las personas que visiten el sitio.</p>
+        </div>
+    </div>
+
+
+    <section class="promo-desayuno container" id="promo-desayuno">
+        <div class="promo-card cart-item" id="menu-item-promo-desayuno" data-name="Promoción Desayuno" data-base-price="60" data-image="imagenes/chilaquiles.png">
+            <span class="promo-ribbon">🔥 Promo del día</span>
+
+            <div class="promo-card-inner">
+                <div class="promo-card-info">
+                    <span class="promo-eyebrow">Horario: 10:00 AM – 13:00 PM</span>
+                    <h2 class="promo-title">Promoción Desayuno</h2>
+                    <p class="promo-desc">Elige un desayuno + un café caliente y llévate los dos por un precio único.</p>
+
+                    <div class="item-options promo-options">
+                        <div class="option-group">
+                            <span class="option-group-label">Elige tu desayuno</span>
+                            <label class="option-pill"><input type="radio" name="promo-desayuno-1" value="Chilaquiles verdes y sencillos" checked><span>Chilaquiles verdes</span></label>
+                            <label class="option-pill"><input type="radio" name="promo-desayuno-1" value="Molletes con pechuga de pavo"><span>Molletes</span></label>
+                            <label class="option-pill"><input type="radio" name="promo-desayuno-1" value="Sándwich"><span>Sándwich</span></label>
+                            <label class="option-pill"><input type="radio" name="promo-desayuno-1" value="Ensalada con todo, sin pollo"><span>Ensalada</span></label>
+                        </div>
+                        <div class="option-group">
+                            <span class="option-group-label">Elige tu café</span>
+                            <label class="option-pill"><input type="radio" name="promo-cafe-1" value="Americano" checked><span>Americano</span></label>
+                            <label class="option-pill"><input type="radio" name="promo-cafe-1" value="Capuchino"><span>Capuchino</span></label>
+                        </div>
+                    </div>
+
+                    <p class="promo-note">*Molletes siempre con pechuga de pavo · Chilaquiles siempre verdes y sencillos · Ensalada con todos los ingredientes, sin pollo.</p>
+
+                    <div class="promo-price-row">
+                        <div class="promo-price">
+                            <span class="promo-price-old">$80</span>
+                            <span class="promo-price-new" data-price-display>$60</span>
+                        </div>
+                        <button type="button" class="agregar-carrito-v2 btn-3 promo-btn">Agregar promoción al carrito</button>
+                    </div>
+                </div>
+
+                <div class="promo-card-img">
+                    <div class="promo-combo" id="promo-combo">
+                        <img id="promo-combo-food" class="promo-combo-img" src="imagenes/chilaquiles.png" alt="Chilaquiles verdes">
+                        <span class="promo-combo-plus">+</span>
+                        <img id="promo-combo-drink" class="promo-combo-img promo-combo-drink" src="imagenes/americano.png" alt="Americano">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="promo2-section container" id="mas-promociones">
+        <div class="promo2-heading">
+            <div class="promo2-heading-left">
+                <span class="eyebrow promo2-eyebrow">🎉 Más promociones</span>
+                <h2>Eventos y ofertas especiales</h2>
+                <p>Noches temáticas y promociones de temporada de Café Cultural El Alebrije.</p>
+            </div>
+            <button type="button" class="promo2-admin-btn" id="promo2-admin-btn">✏️ Administrar promociones</button>
+        </div>
+
+        <!--
+            Las tarjetas de esta sección se generan automáticamente desde script.js,
+            a partir de la lista PROMOCIONES2 que está al principio del archivo.
+            También se pueden agregar, editar o borrar desde el botón "Administrar
+            promociones" de aquí arriba (ver la nota completa dentro de script.js).
+        -->
+        <div class="promo2-grid" id="promo2-grid"></div>
+        <p class="promo2-vacio" id="promo2-vacio" hidden>Por ahora no hay promociones publicadas. ¡Vuelve pronto!</p>
+    </section>
+
+    <div class="promo2-modal" id="promo2-modal">
+        <div class="promo2-modal-inner">
+            <button class="promo2-modal-close" id="promo2-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🎉 Administrar promociones</h3>
+            <p class="promo2-modal-sub">
+                Agrega, edita o elimina lo que se muestra en "Más promociones". Los cambios se
+                guardan en este navegador y se ven de inmediato en esta página.
+            </p>
+
+            <div class="promo2-modal-lista" id="promo2-modal-lista"></div>
+
+            <button type="button" class="promo2-modal-agregar" id="promo2-modal-agregar">+ Agregar promoción</button>
+
+            <div class="promo2-modal-acciones">
+                <button type="button" class="promo2-modal-copiar" id="promo2-modal-copiar">Copiar código para el sitio</button>
+                <button type="button" class="pedido-modal-enviar promo2-modal-guardar" id="promo2-modal-guardar">Guardar cambios</button>
+            </div>
+            <p class="promo2-modal-copiado" id="promo2-modal-copiado">✓ Código copiado. Pégalo en script.js (donde dice PROMOCIONES2) para que se vea igual para todas las personas que visiten el sitio.</p>
+        </div>
+    </div>
+
+    <section class="info" id="nosotros">
+        <img class="bg-2" src="imagenes/bg-2.png" alt="">
+        <div class="info-content container">
+            <div class="info-img">
+                <img src="imagenes/breakfast.png" alt="Desayuno preparado en casa">
+            </div>
+
+            <div class="info-txt">
+                <h2>¡El mejor sazón se encuentra en nuestra casa!</h2>
+                <p>
+                    El Alebrije nació de las ganas de crear un espacio donde el café, la comida
+                    casera y la musica mexicana convivan bajo un mismo techo. Nuestro nombre y nuestra gente nos ha llevado a contar historias magnificas.
+                </p>
+                <p>
+                    Además de la cocina, somos foro cultural: exposiciones de artesanos locales, noches de música
+                    en vivo y el hogar de nuestro propio podcast. Ven a tomarte un café y quédate por la plática.
+                </p>
+                <a href="#ubicacion" class="btn-1">Visítanos</a>
+            </div>
+
+        </div>
+    </section>
+
+
+    <main class="products container" id="productos">
+        <div class="section-heading">
+            <span class="eyebrow">Nuestra carta</span>
+            <h2>Menú de la casa</h2>
+            <p>Café, desayunos, comida corrida y algunos favoritos para llevar. Esto es lo que se cocina en Café Cultural El Alebrije.</p>
+        </div>
+
+        <!--
+            CÓMO FUNCIONA CADA TARJETA DE PRODUCTO (cart-item):
+            - data-name / data-base-price / data-image van en el elemento .cart-item.
+            - Un .option-group con data-affects-price="true" cambia el precio según el radio elegido
+              (cada input trae su propio data-price).
+            - Un .option-group SIN data-affects-price, un <select class="option-select"> o checkboxes
+              solo agregan una anotación al nombre del producto en el carrito (no cambian el precio).
+            - Un checkbox con class="addon-checkbox" y data-addon-price suma un extra al precio (ej. envío).
+            - Si el producto no tiene precio todavía, el botón lleva "disabled" y no se puede agregar.
+        -->
+
+        <h3 class="menu-block-title">Platillos destacados</h3>
+        <div class="box-container" id="lista-1">
+
+            <div class="box cart-item" data-name="Molletes" data-base-price="40" data-image="imagenes/molletes.png">
+                <img src="imagenes/molletes.png" alt="">
+                <div class="product-txt">
+                    <h3>Molletes</h3>
+                    <p>Incluye pico de gallo.</p>
+                    <p class="precio" data-price-display>$40</p>
+                    <div class="item-options">
+                        <div class="option-group">
+                            <span class="option-group-label">Proteína</span>
+                            <label class="option-pill"><input type="radio" name="molletes-proteina-1" value="Pechuga de pavo" checked><span>Pechuga de pavo</span></label>
+                            <label class="option-pill"><input type="radio" name="molletes-proteina-1" value="Longaniza"><span>Longaniza</span></label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Chilaquiles" data-base-price="45" data-image="imagenes/chilaquiles.png">
+                <img src="imagenes/chilaquiles.png" alt="">
+                <div class="product-txt">
+                    <h3>Chilaquiles</h3>
+                    <p>Incluye bolillo.</p>
+                    <p class="precio" data-price-display>$45</p>
+                    <div class="item-options">
+                        <div class="option-group">
+                            <span class="option-group-label">Salsa</span>
+                            <label class="option-pill"><input type="radio" name="chilaquiles-color-1" value="Roja" checked><span>Roja</span></label>
+                            <label class="option-pill"><input type="radio" name="chilaquiles-color-1" value="Verde"><span>Verde</span></label>
+                        </div>
+                        <div class="option-group" data-affects-price="true">
+                            <span class="option-group-label">Preparación</span>
+                            <label class="option-pill"><input type="radio" name="chilaquiles-prep-1" value="Sencillos" data-price="45" checked><span>Sencillos · $45</span></label>
+                            <label class="option-pill"><input type="radio" name="chilaquiles-prep-1" value="Con huevo" data-price="50"><span>Con huevo · $50</span></label>
+                            <label class="option-pill"><input type="radio" name="chilaquiles-prep-1" value="Con pollo" data-price="55"><span>Con pollo · $55</span></label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Enchiladas Suizas" data-base-price="50" data-image="imagenes/enchiladas-suizas.png">
+                <img src="imagenes/enchiladas-suizas.png" alt="">
+                <div class="product-txt">
+                    <h3>Enchiladas Suizas</h3>
+                    <p>4 piezas.</p>
+                    <p class="precio" data-price-display>$50</p>
+                    <div class="item-options">
+                        <div class="option-group">
+                            <span class="option-group-label">Salsa</span>
+                            <label class="option-pill"><input type="radio" name="suizas-color-1" value="Roja" checked><span>Roja</span></label>
+                            <label class="option-pill"><input type="radio" name="suizas-color-1" value="Verde"><span>Verde</span></label>
+                        </div>
+                        <div class="option-checklist option-checklist-inline">
+                            <label><input type="checkbox" value="Queso rayado">Queso rayado</label>
+                            <label><input type="checkbox" value="Cebolla">Cebolla</label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Capuchino" data-base-price="40" data-image="imagenes/capuchino.png">
+                <img src="imagenes/capuchino.png" alt="">
+                <div class="product-txt">
+                    <h3>Capuchino</h3>
+                    <p>Tradicional o con sabor.</p>
+                    <p class="precio" data-price-display>$40</p>
+                    <div class="item-options">
+                        <div class="option-group" data-affects-price="true">
+                            <span class="option-group-label">Sabor</span>
+                            <label class="option-pill"><input type="radio" name="capuchino-sabor-1" value="Tradicional" data-price="40" checked><span>Tradicional · $40</span></label>
+                            <label class="option-pill"><input type="radio" name="capuchino-sabor-1" value="Amaretto" data-price="45"><span>Amaretto · $45</span></label>
+                            <label class="option-pill"><input type="radio" name="capuchino-sabor-1" value="Crema irlandesa" data-price="45"><span>Crema irlandesa · $45</span></label>
+                            <label class="option-pill"><input type="radio" name="capuchino-sabor-1" value="Vainilla" data-price="45"><span>Vainilla · $45</span></label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Comida Completa" data-base-price="70" data-image="imagenes/logo.png">
+                <img src="imagenes/logo.png" alt="Café Cultural El Alebrije">
+                <div class="product-txt">
+                    <h3>Comida Completa</h3>
+                    <p>Guisado, arroz/frijoles o spaghetti, consomé o sopa, agua de sabor y tortillas. Pregunta el guisado del día por WhatsApp.</p>
+                    <p class="precio" data-price-display>$70</p>
+                    <div class="item-options">
+                        <div class="option-group">
+                            <label class="option-pill"><input type="checkbox" class="addon-checkbox" value="Envío a domicilio" data-addon-price="10"><span>Agregar envío a domicilio · +$10</span></label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Comida Media" data-base-price="50" data-image="imagenes/logo.png">
+                <img src="imagenes/logo.png" alt="Café Cultural El Alebrije">
+                <div class="product-txt">
+                    <h3>Comida Media</h3>
+                    <p>Guisado, arroz/frijoles o spaghetti y tortillas. Pregunta el guisado del día por WhatsApp.</p>
+                    <p class="precio" data-price-display>$50</p>
+                    <div class="item-options">
+                        <div class="option-group">
+                            <label class="option-pill"><input type="checkbox" class="addon-checkbox" value="Envío a domicilio" data-addon-price="10"><span>Agregar envío a domicilio · +$10</span></label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Frappé" data-base-price="60" data-image="imagenes/frappe.png">
+                <img src="imagenes/frappe.png" alt="">
+                <div class="product-txt">
+                    <h3>Frappé</h3>
+                    <p>Elige tu sabor.</p>
+                    <p class="precio" data-price-display>$60</p>
+                    <div class="item-options">
+                        <div class="option-group">
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Oreo" checked><span>Oreo</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Cajeta"><span>Cajeta</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Café"><span>Café</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Vainilla"><span>Vainilla</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Chocorrol"><span>Chocorrol</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Mazapán"><span>Mazapán</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Gansito"><span>Gansito</span></label>
+                            <label class="option-pill"><input type="radio" name="frappe-sabor-1" value="Nutella"><span>Nutella</span></label>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+            <div class="box cart-item" data-name="Ensalada" data-base-price="50" data-image="imagenes/ensalada.png">
+                <img src="imagenes/ensalada.png" alt="">
+                <div class="product-txt">
+                    <h3>Ensalada</h3>
+                    <p>Base de lechuga, elige tus ingredientes.</p>
+                    <p class="precio" data-price-display>$50</p>
+                    <div class="item-options">
+                        <div class="option-group" data-affects-price="true">
+                            <label class="option-pill"><input type="radio" name="ensalada-tipo-1" value="Sin pollo" data-price="50" checked><span>Sin pollo · $50</span></label>
+                            <label class="option-pill"><input type="radio" name="ensalada-tipo-1" value="Con pollo" data-price="60"><span>Con pollo · $60</span></label>
+                        </div>
+                        <div>
+                            <span class="option-group-label">Ingredientes (opcional)</span>
+                            <div class="option-checklist">
+                                <label><input type="checkbox" value="Zanahoria">Zanahoria</label>
+                                <label><input type="checkbox" value="Espinacas">Espinacas</label>
+                                <label><input type="checkbox" value="Jícama">Jícama</label>
+                                <label><input type="checkbox" value="Fruta">Fruta</label>
+                                <label><input type="checkbox" value="Arándanos">Arándanos</label>
+                                <label><input type="checkbox" value="Semillas de girasol">Semillas de girasol</label>
+                                <label><input type="checkbox" value="Granola">Granola</label>
+                                <label><input type="checkbox" value="Ajonjolí garapiñado">Ajonjolí garapiñado</label>
+                                <label><input type="checkbox" value="Queso panela">Queso panela</label>
+                                <label><input type="checkbox" value="Jamón">Jamón</label>
+                                <label><input type="checkbox" value="Aderezo">Aderezo</label>
+                                <label><input type="checkbox" value="Yogurt griego">Yogurt griego</label>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                </div>
+            </div>
+
+        </div>
+        <div class="btn-2" id="load-more">Cargar Más</div>
+
+        <a class="whatsapp-banner" href="https://chat.whatsapp.com/JquklU3wgxf6BgUU9j4NRU?mode=gi_t" target="_blank" rel="noopener">
+            <span class="whatsapp-banner-icon">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39c1.45.79 3.08 1.21 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.76 13.98c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.13.11-1.83-.12-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.79-4.17-4.94-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.28.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.29.36-.42.49-.14.14-.28.29-.12.57.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.61-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.87.27.14.45.2.51.32.07.12.07.68-.17 1.35z"/></svg>
+            </span>
+            <span class="whatsapp-banner-text">
+                <strong>Únete a nuestro grupo de WhatsApp</strong>
+                <span>Recibe el menú del día todas las mañanas, antes que nadie.</span>
+            </span>
+            <span class="whatsapp-banner-cta">Unirme →</span>
+        </a>
+
+        <div class="menu-tabs" role="tablist">
+            <button class="menu-tab active" data-target="bebidas">Bebidas</button>
+            <button class="menu-tab" data-target="snacks">Snacks</button>
+            <button class="menu-tab" data-target="desayunos">Desayunos</button>
+            <button class="menu-tab" data-target="corrida">Comida Corrida</button>
+            <button class="menu-tab" data-target="recetas">Recetas</button>
+        </div>
+
+        <div class="menu-panels">
+
+            <!-- BEBIDAS -->
+            <div class="menu-panel active" id="panel-bebidas">
+
+                <div class="menu-category">
+                    <h4>Café Caliente</h4>
+
+                    <div class="menu-sub">
+                        <h5>Tradicionales</h5>
+
+                        <div class="menu-item cart-item" data-name="Expresso" data-base-price="40" data-image="imagenes/espresso.png">
+                            <img class="menu-item-thumb" src="imagenes/espresso.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Expresso</span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">Extracto de café corto, fuerte y espumoso.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="radio" name="expresso-tipo-1" value="Ristretto" checked><span>Ristretto</span></label>
+                                    <label class="option-pill"><input type="radio" name="expresso-tipo-1" value="Lungo"><span>Lungo</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" id="menu-item-capuchino-latte" data-name="Capuchino" data-base-price="40" data-image="imagenes/capuchino.png">
+                            <img class="menu-item-thumb" src="imagenes/capuchino.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Capuchino</span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">Café expreso tradicional italiano combinado con un toque de leche y espuma cremosa.</p>
+                            <div class="item-options">
+                                <div class="option-group" data-affects-price="true">
+                                    <label class="option-pill"><input type="radio" name="capuchino-sabor-2" value="Tradicional" data-price="40" checked><span>Tradicional · $40</span></label>
+                                    <label class="option-pill"><input type="radio" name="capuchino-sabor-2" value="Amaretto" data-price="45"><span>Amaretto · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="capuchino-sabor-2" value="Crema irlandesa" data-price="45"><span>Crema irlandesa · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="capuchino-sabor-2" value="Vainilla" data-price="45"><span>Vainilla · $45</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Latte" data-base-price="40" data-image="imagenes/latte.png">
+                            <img class="menu-item-thumb" src="imagenes/latte.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Latte</span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">Expreso tradicional con leche cremada.</p>
+                            <div class="item-options">
+                                <div class="option-group" data-affects-price="true">
+                                    <label class="option-pill"><input type="radio" name="latte-sabor-1" value="Tradicional" data-price="40" checked><span>Tradicional · $40</span></label>
+                                    <label class="option-pill"><input type="radio" name="latte-sabor-1" value="Amaretto" data-price="45"><span>Amaretto · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="latte-sabor-1" value="Crema irlandesa" data-price="45"><span>Crema irlandesa · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="latte-sabor-1" value="Vainilla" data-price="45"><span>Vainilla · $45</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Atole" data-base-price="40" data-image="imagenes/atole.png">
+                            <img class="menu-item-thumb" src="imagenes/atole.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Atole</span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">Sin gluten, reducido en azúcar, fortificado con vitaminas y minerales.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="radio" name="atole-sabor-1" value="Amaranto" checked><span>Amaranto</span></label>
+                                    <label class="option-pill"><input type="radio" name="atole-sabor-1" value="Pinole"><span>Pinole</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Americano" data-base-price="25" data-image="imagenes/americano.png">
+                            <img class="menu-item-thumb" src="imagenes/americano.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Americano</span><span class="menu-item-price" data-price-display>$25</span></div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="menu-sub">
+                        <h5>Culturales</h5>
+
+                        <div class="menu-item cart-item" data-name="Café Lechero" data-base-price="45" data-image="imagenes/cafe-lechero.png">
+                            <img class="menu-item-thumb" src="imagenes/cafe-lechero.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Café Lechero</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Café al gusto y leche evaporada.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Café Bombón" data-base-price="45" data-image="imagenes/cafe-bombon.png">
+                            <img class="menu-item-thumb" src="imagenes/cafe-bombon.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Café Bombón</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Leche condensada con expreso tradicional adornado con espuma de leche.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Español" data-base-price="45" data-image="imagenes/espanol.png">
+                            <img class="menu-item-thumb" src="imagenes/espanol.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Español</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Café adornado con espuma de leche.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Vienés" data-base-price="45" data-image="imagenes/vienes.png">
+                            <img class="menu-item-thumb" src="imagenes/vienes.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Vienés</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Expreso con crema batida y toques de caramelo.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Candy Latte" data-base-price="45" data-image="imagenes/candy-latte.png">
+                            <img class="menu-item-thumb" src="imagenes/candy-latte.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Candy Latte</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Latte con toques de cajeta y vainilla.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Chocolate Caliente" data-base-price="60" data-image="imagenes/chocolate-caliente.png">
+                            <img class="menu-item-thumb" src="imagenes/chocolate-caliente.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Chocolate Caliente</span><span class="menu-item-price" data-price-display>$60</span></div>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="radio" name="chocolate-intensidad-1" value="Amargo cacao 40%" checked><span>Amargo cacao 40%</span></label>
+                                    <label class="option-pill"><input type="radio" name="chocolate-intensidad-1" value="Semi-amargo cacao 30%"><span>Semi-amargo cacao 30%</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category">
+                    <h4>Café Frío</h4>
+                    <div class="menu-sub">
+                        <div class="menu-item cart-item" data-name="Ice Paradise" data-base-price="45" data-image="imagenes/ice-paradise.png">
+                            <img class="menu-item-thumb" src="imagenes/ice-paradise.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Ice Paradise</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Espuma cremosa de café con leche fría.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                        <div class="menu-item cart-item" data-name="Afogato" data-base-price="45" data-image="imagenes/afogato.png">
+                            <img class="menu-item-thumb" src="imagenes/afogato.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Afogato</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Bola de helado de vainilla cubierta con expreso caliente.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                        <div class="menu-item cart-item" data-name="Capuchino Frío" data-base-price="45" data-image="imagenes/capuchino.png">
+                            <img class="menu-item-thumb" src="imagenes/capuchino.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Capuchino Frío</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <div class="item-options">
+                                <div class="option-group" data-affects-price="true">
+                                    <label class="option-pill"><input type="radio" name="capuchino-frio-sabor-1" value="Tradicional" data-price="45" checked><span>Tradicional · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="capuchino-frio-sabor-1" value="Amaretto" data-price="50"><span>Amaretto · $50</span></label>
+                                    <label class="option-pill"><input type="radio" name="capuchino-frio-sabor-1" value="Crema irlandesa" data-price="50"><span>Crema irlandesa · $50</span></label>
+                                    <label class="option-pill"><input type="radio" name="capuchino-frio-sabor-1" value="Vainilla" data-price="50"><span>Vainilla · $50</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                        <div class="menu-item cart-item" data-name="Latte Frío" data-base-price="45" data-image="imagenes/latte.png">
+                            <img class="menu-item-thumb" src="imagenes/latte.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Latte Frío</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <div class="item-options">
+                                <div class="option-group" data-affects-price="true">
+                                    <label class="option-pill"><input type="radio" name="latte-frio-sabor-1" value="Tradicional" data-price="45" checked><span>Tradicional · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="latte-frio-sabor-1" value="Amaretto" data-price="50"><span>Amaretto · $50</span></label>
+                                    <label class="option-pill"><input type="radio" name="latte-frio-sabor-1" value="Crema irlandesa" data-price="50"><span>Crema irlandesa · $50</span></label>
+                                    <label class="option-pill"><input type="radio" name="latte-frio-sabor-1" value="Vainilla" data-price="50"><span>Vainilla · $50</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category">
+                    <h4>Frappé</h4>
+                    <div class="menu-sub">
+                        <div class="menu-item cart-item" data-name="Frappé" data-base-price="60" data-image="imagenes/frappe.png">
+                            <img class="menu-item-thumb" src="imagenes/frappe.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Frappé</span><span class="menu-item-price" data-price-display>$60</span></div>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Oreo" checked><span>Oreo</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Cajeta"><span>Cajeta</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Café"><span>Café</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Vainilla"><span>Vainilla</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Chocorrol"><span>Chocorrol</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Mazapán"><span>Mazapán</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Gansito"><span>Gansito</span></label>
+                                    <label class="option-pill"><input type="radio" name="frappe-sabor-2" value="Nutella"><span>Nutella</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category">
+                    <h4>Té</h4>
+                    <div class="menu-sub">
+                        <div class="menu-item cart-item" data-name="Té" data-base-price="45" data-image="imagenes/te.png">
+                            <img class="menu-item-thumb" src="imagenes/te.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Té</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="radio" name="te-sabor-1" value="Manzanilla" checked><span>Manzanilla</span></label>
+                                    <label class="option-pill"><input type="radio" name="te-sabor-1" value="Té verde"><span>Té verde</span></label>
+                                    <label class="option-pill"><input type="radio" name="te-sabor-1" value="Manzanilla y anís"><span>Manzanilla y anís</span></label>
+                                    <label class="option-pill"><input type="radio" name="te-sabor-1" value="Manzanilla y cúrcuma"><span>Manzanilla y cúrcuma</span></label>
+                                    <label class="option-pill"><input type="radio" name="te-sabor-1" value="Té chai"><span>Té chai</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="menu-sub">
+                        <h5>Té de la Casa</h5>
+                        <div class="menu-item cart-item" data-name="Té Alebrije" data-base-price="45" data-image="imagenes/logo.png">
+                            <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Alebrije</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Manzanilla y especias.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                        <div class="menu-item cart-item" data-name="Té Romántico" data-base-price="45" data-image="imagenes/logo.png">
+                            <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Romántico</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Mezcla especial de frutos rojos.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                        <div class="menu-item cart-item" data-name="Té Especial" data-base-price="45" data-image="imagenes/logo.png">
+                            <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Especial</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Mezcla de finas especias.</p>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SNACKS -->
+            <div class="menu-panel" id="panel-snacks">
+                <div class="menu-category">
+                    <div class="menu-sub">
+
+                        <div class="menu-item cart-item" data-name="Waffles" data-base-price="45" data-image="imagenes/waffles.png">
+                            <img class="menu-item-thumb" src="imagenes/waffles.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Waffles</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">4 piezas.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Tipo</span>
+                                    <label class="option-pill"><input type="radio" name="waffles-tipo-1" value="Dulce" data-show="waffles-dulce-1" checked><span>Dulce</span></label>
+                                    <label class="option-pill"><input type="radio" name="waffles-tipo-1" value="Salado" data-show="waffles-salado-1"><span>Salado</span></label>
+                                </div>
+                                <div class="option-conditional" id="waffles-dulce-1">
+                                    <div class="option-group">
+                                        <span class="option-group-label">Base</span>
+                                        <label class="option-pill"><input type="radio" name="waffles-base-1" value="Queso con zarzamora" checked><span>Queso con zarzamora</span></label>
+                                        <label class="option-pill"><input type="radio" name="waffles-base-1" value="Mermelada de fresa"><span>Mermelada de fresa</span></label>
+                                        <label class="option-pill"><input type="radio" name="waffles-base-1" value="Leche Nestlé"><span>Leche Nestlé</span></label>
+                                    </div>
+                                    <div class="option-group">
+                                        <span class="option-group-label">Fruta</span>
+                                        <label class="option-pill"><input type="radio" name="waffles-fruta-1" value="Manzana" checked><span>Manzana</span></label>
+                                        <label class="option-pill"><input type="radio" name="waffles-fruta-1" value="Plátano"><span>Plátano</span></label>
+                                        <label class="option-pill"><input type="radio" name="waffles-fruta-1" value="Kiwi"><span>Kiwi</span></label>
+                                    </div>
+                                </div>
+                                <div class="option-conditional" id="waffles-salado-1" hidden>
+                                    <div class="option-group">
+                                        <span class="option-group-label">Relleno</span>
+                                        <label class="option-pill"><input type="radio" name="waffles-salado-relleno-1" value="Jamón con queso" checked><span>Jamón con queso</span></label>
+                                        <label class="option-pill"><input type="radio" name="waffles-salado-relleno-1" value="Pepperoni con queso"><span>Pepperoni con queso</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Conchas Rellenas" data-base-price="45" data-image="imagenes/concha-rellena.png">
+                            <img class="menu-item-thumb" src="imagenes/concha-rellena.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Conchas Rellenas</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Base</span>
+                                    <label class="option-pill"><input type="radio" name="conchas-base-1" value="Queso con zarzamora" checked><span>Queso con zarzamora</span></label>
+                                    <label class="option-pill"><input type="radio" name="conchas-base-1" value="Mermelada de fresa"><span>Mermelada de fresa</span></label>
+                                    <label class="option-pill"><input type="radio" name="conchas-base-1" value="Leche Nestlé"><span>Leche Nestlé</span></label>
+                                </div>
+                                <div class="option-group">
+                                    <span class="option-group-label">Fruta</span>
+                                    <label class="option-pill"><input type="radio" name="conchas-fruta-1" value="Manzana" checked><span>Manzana</span></label>
+                                    <label class="option-pill"><input type="radio" name="conchas-fruta-1" value="Plátano"><span>Plátano</span></label>
+                                    <label class="option-pill"><input type="radio" name="conchas-fruta-1" value="Kiwi"><span>Kiwi</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Rollo Alebrije" data-base-price="40" data-image="imagenes/logo.png">
+                            <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Rollo Alebrije <span class="menu-item-tag">Especialidad de la casa</span></span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">De avena con frutos rojos y jarabe de chocolate.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Base</span>
+                                    <label class="option-pill"><input type="radio" name="rollo-base-1" value="Mermelada de fresa" checked><span>Mermelada de fresa</span></label>
+                                    <label class="option-pill"><input type="radio" name="rollo-base-1" value="Queso con zarzamora"><span>Queso con zarzamora</span></label>
+                                    <label class="option-pill"><input type="radio" name="rollo-base-1" value="Lechera"><span>Lechera</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Crepas" data-base-price="" data-image="imagenes/crepa.png">
+                            <img class="menu-item-thumb" src="imagenes/crepa.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Crepas</span><span class="menu-item-price">Precio por confirmar</span></div>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Tipo</span>
+                                    <label class="option-pill"><input type="radio" name="crepas-tipo-1" value="Dulce" data-show="crepas-dulce-1" checked><span>Dulce</span></label>
+                                    <label class="option-pill"><input type="radio" name="crepas-tipo-1" value="Salada" data-show="crepas-salada-1"><span>Salada</span></label>
+                                </div>
+                                <div class="option-conditional" id="crepas-dulce-1">
+                                    <div class="option-group">
+                                        <span class="option-group-label">Base</span>
+                                        <label class="option-pill"><input type="radio" name="crepas-base-1" value="Nutella" checked><span>Nutella</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-base-1" value="Lechera"><span>Lechera</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-base-1" value="Mermelada de fresa"><span>Mermelada de fresa</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-base-1" value="Queso con zarzamora"><span>Queso con zarzamora</span></label>
+                                    </div>
+                                    <div class="option-group">
+                                        <span class="option-group-label">Fruta</span>
+                                        <label class="option-pill"><input type="radio" name="crepas-fruta-1" value="Fresa" checked><span>Fresa</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-fruta-1" value="Plátano"><span>Plátano</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-fruta-1" value="Manzana"><span>Manzana</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-fruta-1" value="Kiwi"><span>Kiwi</span></label>
+                                    </div>
+                                </div>
+                                <div class="option-conditional" id="crepas-salada-1" hidden>
+                                    <div class="option-group">
+                                        <span class="option-group-label">Relleno</span>
+                                        <label class="option-pill"><input type="radio" name="crepas-salado-relleno-1" value="Jamón con queso" checked><span>Jamón con queso</span></label>
+                                        <label class="option-pill"><input type="radio" name="crepas-salado-relleno-1" value="Pepperoni con queso"><span>Pepperoni con queso</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3" disabled>Precio pendiente</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESAYUNOS -->
+            <div class="menu-panel" id="panel-desayunos">
+                <div class="menu-category">
+                    <div class="menu-sub">
+
+                        <div class="menu-item cart-item" id="menu-item-sandwich" data-name="Sandwich" data-base-price="40" data-image="imagenes/sandwich.png">
+                            <img class="menu-item-thumb" src="imagenes/sandwich.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Sandwich</span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">Acompañado de jitomate, lechuga, cebolla y pretzels.</p>
+                            <div class="item-options">
+                                <div class="option-group" data-affects-price="true">
+                                    <label class="option-pill"><input type="radio" name="sandwich-tam-1" value="Chico (2 panes)" data-price="40" checked><span>Chico (2 panes) · $40</span></label>
+                                    <label class="option-pill"><input type="radio" name="sandwich-tam-1" value="Grande (3 panes)" data-price="50"><span>Grande (3 panes) · $50</span></label>
+                                </div>
+                                <div>
+                                    <span class="option-group-label">Proteína (elige una o varias)</span>
+                                    <div class="option-checklist option-checklist-inline">
+                                        <label><input type="checkbox" value="Pechuga de pavo">Pechuga de pavo</label>
+                                        <label><input type="checkbox" value="Pepperoni">Pepperoni</label>
+                                        <label><input type="checkbox" value="Atún">Atún</label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="option-group-label">Ingredientes</span>
+                                    <div class="option-checklist option-checklist-inline">
+                                        <label><input type="checkbox" value="Jitomate">Jitomate</label>
+                                        <label><input type="checkbox" value="Lechuga">Lechuga</label>
+                                        <label><input type="checkbox" value="Cebolla">Cebolla</label>
+                                        <label><input type="checkbox" value="Pretzels">Pretzels</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" id="menu-item-molletes" data-name="Molletes" data-base-price="40" data-image="imagenes/molletes.png">
+                            <img class="menu-item-thumb" src="imagenes/molletes.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Molletes</span><span class="menu-item-price" data-price-display>$40</span></div>
+                            <p class="menu-item-desc">Acompañado de pico de gallo.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Proteína</span>
+                                    <label class="option-pill"><input type="radio" name="molletes-proteina-2" value="Pechuga de pavo" checked><span>Pechuga de pavo</span></label>
+                                    <label class="option-pill"><input type="radio" name="molletes-proteina-2" value="Longaniza"><span>Longaniza</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Ensaladas" data-base-price="50" data-image="imagenes/ensalada.png">
+                            <img class="menu-item-thumb" src="imagenes/ensalada.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Ensaladas</span><span class="menu-item-price" data-price-display>$50</span></div>
+                            <p class="menu-item-desc">Base de lechuga, elige tus ingredientes.</p>
+                            <div class="item-options">
+                                <div class="option-group" data-affects-price="true">
+                                    <label class="option-pill"><input type="radio" name="ensalada-tipo-2" value="Sin pollo" data-price="50" checked><span>Sin pollo · $50</span></label>
+                                    <label class="option-pill"><input type="radio" name="ensalada-tipo-2" value="Con pollo" data-price="60"><span>Con pollo · $60</span></label>
+                                </div>
+                                <div>
+                                    <span class="option-group-label">Ingredientes (opcional)</span>
+                                    <div class="option-checklist">
+                                        <label><input type="checkbox" value="Zanahoria">Zanahoria</label>
+                                        <label><input type="checkbox" value="Espinacas">Espinacas</label>
+                                        <label><input type="checkbox" value="Jícama">Jícama</label>
+                                        <label><input type="checkbox" value="Fruta">Fruta</label>
+                                        <label><input type="checkbox" value="Arándanos">Arándanos</label>
+                                        <label><input type="checkbox" value="Semillas de girasol">Semillas de girasol</label>
+                                        <label><input type="checkbox" value="Granola">Granola</label>
+                                        <label><input type="checkbox" value="Ajonjolí garapiñado">Ajonjolí garapiñado</label>
+                                        <label><input type="checkbox" value="Queso panela">Queso panela</label>
+                                        <label><input type="checkbox" value="Jamón">Jamón</label>
+                                        <label><input type="checkbox" value="Aderezo">Aderezo</label>
+                                        <label><input type="checkbox" value="Yogurt griego">Yogurt griego</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" id="menu-item-huevos-al-gusto" data-name="Huevos al Gusto" data-base-price="45" data-image="imagenes/huevos-al-gusto.png">
+                            <img class="menu-item-thumb" src="imagenes/huevos-al-gusto.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Huevos al Gusto</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="radio" name="huevos-estilo-1" value="Estrellados" checked><span>Estrellados</span></label>
+                                    <label class="option-pill"><input type="radio" name="huevos-estilo-1" value="Divorciados"><span>Divorciados</span></label>
+                                    <label class="option-pill"><input type="radio" name="huevos-estilo-1" value="Con jamón"><span>Con jamón</span></label>
+                                    <label class="option-pill"><input type="radio" name="huevos-estilo-1" value="Con tocino"><span>Con tocino</span></label>
+                                    <label class="option-pill"><input type="radio" name="huevos-estilo-1" value="Con salchichas"><span>Con salchichas</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Omelette Relleno" data-base-price="50" data-image="imagenes/omelette.png">
+                            <img class="menu-item-thumb" src="imagenes/omelette.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Omelette Relleno</span><span class="menu-item-price" data-price-display>$50</span></div>
+                            <div class="item-options">
+                                <span class="option-group-label">Relleno</span>
+                                <div class="option-checklist option-checklist-inline">
+                                    <label><input type="checkbox" value="Jamón">Jamón</label>
+                                    <label><input type="checkbox" value="Queso">Queso</label>
+                                    <label><input type="checkbox" value="Espinaca">Espinaca</label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" id="menu-item-chilaquiles" data-name="Chilaquiles" data-base-price="45" data-image="imagenes/chilaquiles.png">
+                            <img class="menu-item-thumb" src="imagenes/chilaquiles.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Chilaquiles</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">Incluye bolillo.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Salsa</span>
+                                    <label class="option-pill"><input type="radio" name="chilaquiles-color-2" value="Roja" checked><span>Roja</span></label>
+                                    <label class="option-pill"><input type="radio" name="chilaquiles-color-2" value="Verde"><span>Verde</span></label>
+                                </div>
+                                <div class="option-group" data-affects-price="true">
+                                    <span class="option-group-label">Preparación</span>
+                                    <label class="option-pill"><input type="radio" name="chilaquiles-prep-2" value="Sencillos" data-price="45" checked><span>Sencillos · $45</span></label>
+                                    <label class="option-pill"><input type="radio" name="chilaquiles-prep-2" value="Con huevo" data-price="50"><span>Con huevo · $50</span></label>
+                                    <label class="option-pill"><input type="radio" name="chilaquiles-prep-2" value="Con pollo" data-price="55"><span>Con pollo · $55</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" data-name="Enchiladas Suizas" data-base-price="50" data-image="imagenes/enchiladas-suizas.png">
+                            <img class="menu-item-thumb" src="imagenes/enchiladas-suizas.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Enchiladas Suizas</span><span class="menu-item-price" data-price-display>$50</span></div>
+                            <p class="menu-item-desc">4 piezas.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <span class="option-group-label">Salsa</span>
+                                    <label class="option-pill"><input type="radio" name="suizas-color-2" value="Roja" checked><span>Roja</span></label>
+                                    <label class="option-pill"><input type="radio" name="suizas-color-2" value="Verde"><span>Verde</span></label>
+                                </div>
+                                <div class="option-checklist option-checklist-inline">
+                                    <label><input type="checkbox" value="Queso rayado">Queso rayado</label>
+                                    <label><input type="checkbox" value="Cebolla">Cebolla</label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <div class="menu-item cart-item" id="menu-item-tacos-dorados" data-name="Tacos Dorados" data-base-price="45" data-image="imagenes/tacos-dorados.png">
+                            <img class="menu-item-thumb" src="imagenes/tacos-dorados.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Tacos Dorados</span><span class="menu-item-price" data-price-display>$45</span></div>
+                            <p class="menu-item-desc">4 piezas.</p>
+                            <div class="item-options">
+                                <span class="option-group-label">Ingredientes</span>
+                                <div class="option-checklist option-checklist-inline">
+                                    <label><input type="checkbox" value="Lechuga">Lechuga</label>
+                                    <label><input type="checkbox" value="Cebolla">Cebolla</label>
+                                    <label><input type="checkbox" value="Jitomate">Jitomate</label>
+                                    <label><input type="checkbox" value="Crema">Crema</label>
+                                    <label><input type="checkbox" value="Queso rayado">Queso rayado</label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMIDA CORRIDA -->
+            <div class="menu-panel" id="panel-corrida">
+                <div class="menu-category">
+                    <div class="menu-sub">
+                        <div class="menu-item cart-item" data-name="Comida Media" data-base-price="50" data-image="imagenes/logo.png">
+                            <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Comida Media</span><span class="menu-item-price" data-price-display>$50</span></div>
+                            <p class="menu-item-desc">Arroz, frijoles o spaghetti (según el platillo del día), guisado y tortillas.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="checkbox" class="addon-checkbox" value="Envío a domicilio" data-addon-price="10"><span>Agregar envío a domicilio · +$10</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+                        <div class="menu-item cart-item" data-name="Comida Completa" data-base-price="70" data-image="imagenes/logo.png">
+                            <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
+                            <div class="menu-item-head"><span class="menu-item-name">Comida Completa</span><span class="menu-item-price" data-price-display>$70</span></div>
+                            <p class="menu-item-desc">Arroz, frijoles o spaghetti (según el platillo del día), guisado, consomé o sopa (según el platillo del día), agua de sabor y tortillas.</p>
+                            <div class="item-options">
+                                <div class="option-group">
+                                    <label class="option-pill"><input type="checkbox" class="addon-checkbox" value="Envío a domicilio" data-addon-price="10"><span>Agregar envío a domicilio · +$10</span></label>
+                                </div>
+                            </div>
+                            <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+                        </div>
+
+                        <a class="whatsapp-banner whatsapp-banner-compact" href="https://chat.whatsapp.com/JquklU3wgxf6BgUU9j4NRU?mode=gi_t" target="_blank" rel="noopener">
+                            <span class="whatsapp-banner-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39c1.45.79 3.08 1.21 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.76 13.98c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.13.11-1.83-.12-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.79-4.17-4.94-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.28.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.29.36-.42.49-.14.14-.28.29-.12.57.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.61-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.87.27.14.45.2.51.32.07.12.07.68-.17 1.35z"/></svg>
+                            </span>
+                            <span class="whatsapp-banner-text">
+                                <strong>¿Qué guisado hay hoy?</strong>
+                                <span>Únete a nuestro grupo de WhatsApp y recibe el menú del día antes de pedir.</span>
+                            </span>
+                            <span class="whatsapp-banner-cta">Unirme →</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECETAS -->
+            <!--
+                CÓMO AGREGAR UNA RECETA NUEVA:
+                Copia una tarjeta ".receta-card" completa y cambia la imagen, el nombre,
+                el "producto estelar" (ese ingrediente/insumo especial que la hace única) y
+                la lista de ingredientes. data-menu-tab / data-menu-item son opcionales: si
+                los pones, el botón "Pedir este platillo" lleva directo a ese platillo en el
+                menú (usa el mismo id que ya tenga esa tarjeta en Bebidas/Snacks/Desayunos/etc).
+            -->
+            <div class="menu-panel" id="panel-recetas">
+                <div class="menu-category">
+                    <h4>Café</h4>
+                    <p class="menu-category-note">Recetas de café con un toque especial, para preparar en casa o pedir ya listas.</p>
+
+                    <div class="receta-grid">
+
+                        <article class="receta-card">
+                            <img src="imagenes/capuchino.png" alt="Capuchino">
+                            <div class="receta-card-body">
+                                <h5>Capuchino</h5>
+                                <span class="receta-estelar">⭐ Producto estelar: café de altura de Coatepec</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>Doble shot de espresso de grano recién molido</li>
+                                    <li>Leche entera vaporizada</li>
+                                    <li>Espuma cremosa con un toque de canela</li>
+                                </ul>
+                                <a href="#productos" class="receta-ver-menu" data-menu-tab="bebidas" data-menu-item="menu-item-capuchino-latte">Pedir este platillo →</a>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-canela-miel.png" alt="Café con Canela y Miel">
+                            <div class="receta-card-body">
+                                <h5>Café con Canela y Miel</h5>
+                                <span class="receta-estelar">⭐ Un clásico reconfortante con un toque dulce y especiado</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café caliente</li>
+                                    <li>½ cucharadita de canela en polvo</li>
+                                    <li>1 cucharada de miel</li>
+                                    <li>Leche al gusto (opcional)</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Prepara tu café en moka o prensa francesa.</li>
+                                    <li>Agrega la miel y la canela directamente en la taza.</li>
+                                    <li>Revuelve bien hasta disolver todo.</li>
+                                    <li>Añade leche caliente si lo deseas.</li>
+                                    <li>Decora con un poco de canela encima.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-arabe-cardamomo.png" alt="Café Árabe al Cardamomo">
+                            <div class="receta-card-body">
+                                <h5>Café Árabe al Cardamomo</h5>
+                                <span class="receta-estelar">⭐ Inspirado en la tradición del café árabe, aromático y especiado</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café negro</li>
+                                    <li>3 vainas de cardamomo machacadas</li>
+                                    <li>Azúcar al gusto</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Añade el cardamomo en el agua antes de preparar el café en la moka.</li>
+                                    <li>Prepara el café normalmente.</li>
+                                    <li>Sirve caliente y endulza al gusto.</li>
+                                    <li>Puedes colar si no quieres restos de cardamomo.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-especiado-invierno.png" alt="Café Especiado de Invierno">
+                            <div class="receta-card-body">
+                                <h5>Café Especiado de Invierno</h5>
+                                <span class="receta-estelar">⭐ Perfecto para los días fríos, con especias cálidas de temporada</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café</li>
+                                    <li>1 pizca de canela</li>
+                                    <li>1 pizca de nuez moscada</li>
+                                    <li>1 pizca de clavo en polvo</li>
+                                    <li>Leche espumada</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Mezcla todas las especias en un recipiente.</li>
+                                    <li>Agrégalas al café recién hecho.</li>
+                                    <li>Añade leche espumada encima.</li>
+                                    <li>Espolvorea con un toque extra de canela.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-anis-estrellado.png" alt="Café con Anís Estrellado">
+                            <div class="receta-card-body">
+                                <h5>Café con Anís Estrellado</h5>
+                                <span class="receta-estelar">⭐ Notas dulces y anisadas en cada sorbo</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café caliente</li>
+                                    <li>1 anís estrellado</li>
+                                    <li>1 cucharada de azúcar moreno</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Hierve el anís estrellado en un poco de agua por 2 minutos.</li>
+                                    <li>Usa esta infusión para preparar tu café.</li>
+                                    <li>Endulza con azúcar moreno y sirve caliente.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-jengibre-panela.png" alt="Café Jengibre y Panela">
+                            <div class="receta-card-body">
+                                <h5>Café Jengibre y Panela</h5>
+                                <span class="receta-estelar">⭐ Picante, dulce y con el sabor natural de la panela</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café</li>
+                                    <li>1 rodaja de jengibre fresco</li>
+                                    <li>1 cucharada de panela rallada</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Hierve el jengibre en agua por 3 minutos.</li>
+                                    <li>Usa esa agua para hacer el café en la moka o prensa.</li>
+                                    <li>Disuelve la panela y sirve caliente.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-naranja-canela.png" alt="Café Naranja y Canela">
+                            <div class="receta-card-body">
+                                <h5>Café Naranja y Canela</h5>
+                                <span class="receta-estelar">⭐ Cítrico y aromático, con un toque de canela</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café</li>
+                                    <li>Cáscara de naranja (sin la parte blanca)</li>
+                                    <li>½ cucharadita de canela</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Coloca la cáscara y la canela en el filtro de la moka o en la jarra de la prensa francesa.</li>
+                                    <li>Prepara el café normalmente.</li>
+                                    <li>Cuela si es necesario y sirve caliente.</li>
+                                    <li>Decora con un toque de cáscara fresca.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-chai-leche.png" alt="Café Chai con Leche">
+                            <div class="receta-card-body">
+                                <h5>Café Chai con Leche</h5>
+                                <span class="receta-estelar">⭐ La fusión perfecta entre café y especias chai</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>½ taza de café fuerte</li>
+                                    <li>½ taza de leche caliente</li>
+                                    <li>¼ cucharadita de mezcla de chai (canela, jengibre, clavo, cardamomo, pimienta negra)</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Mezcla las especias chai con la leche caliente.</li>
+                                    <li>Deja infusionar por 2 minutos.</li>
+                                    <li>Agrega el café y revuelve bien.</li>
+                                    <li>Sirve caliente.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-pimienta-miel.png" alt="Café con Pimienta Negra y Miel">
+                            <div class="receta-card-body">
+                                <h5>Café con Pimienta Negra y Miel</h5>
+                                <span class="receta-estelar">⭐ Un toque picante y dulce a la vez, ideal para sorprender</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café</li>
+                                    <li>1 pizca de pimienta negra molida</li>
+                                    <li>1 cucharada de miel</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Agrega la miel y la pimienta al café caliente.</li>
+                                    <li>Mezcla bien y sirve de inmediato.</li>
+                                    <li>Ideal para dar un toque picante y dulce.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                        <article class="receta-card">
+                            <img src="imagenes/cafe-clavo-nuez.png" alt="Café con Clavo de Olor y Nuez Moscada">
+                            <div class="receta-card-body">
+                                <h5>Café con Clavo de Olor y Nuez Moscada</h5>
+                                <span class="receta-estelar">⭐ Especiado y cálido, perfecto para después de comer</span>
+                                <p class="receta-ingredientes-label">Ingredientes:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 taza de café</li>
+                                    <li>1 pizca de clavo en polvo</li>
+                                    <li>1 pizca de nuez moscada</li>
+                                    <li>Leche caliente (opcional)</li>
+                                </ul>
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li>Mezcla las especias y agrégalas al café ya preparado.</li>
+                                    <li>Añade leche caliente si lo deseas.</li>
+                                    <li>Revuelve y decora con un poco más de nuez moscada.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <div class="menu-category">
+                    <h4>Otras recetas</h4>
+                    <p class="menu-category-note">Platillos con historia, preparados desde cero.</p>
+
+                    <div class="receta-grid">
+
+                        <article class="receta-card receta-card-grande">
+                            <img src="imagenes/pozole-negro.png" alt="Pozole Negro de Puerco con Chile Mulato y Chilhuacle Negro">
+                            <div class="receta-card-body">
+                                <h5>Pozole Negro de Puerco con Chile Mulato y Chilhuacle Negro</h5>
+                                <span class="receta-estelar">⭐ Como el de fonda oaxaqueña: salsa negra de chile mulato, chilhuacle negro y pasilla, frita en manteca</span>
+
+                                <p class="receta-ingredientes-label">Para el caldo:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>1 kg de espaldilla de puerco con hueso</li>
+                                    <li>500 g de codillo de puerco</li>
+                                    <li>4 litros de agua</li>
+                                    <li>1 cabeza de ajo entera</li>
+                                    <li>1 cebolla blanca partida a la mitad</li>
+                                    <li>Sal al gusto</li>
+                                </ul>
+
+                                <p class="receta-ingredientes-label">Para la salsa negra:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>6 chiles mulatos secos, desvenados</li>
+                                    <li>4 chiles chilhuacles negros secos, desvenados</li>
+                                    <li>2 chiles pasillas secos, desvenados</li>
+                                    <li>4 jitomates bola medianos</li>
+                                    <li>1/2 cebolla blanca</li>
+                                    <li>4 dientes de ajo</li>
+                                    <li>1 tortilla de maíz seca o tostada</li>
+                                    <li>2 cucharadas de manteca de puerco</li>
+                                    <li>1 cucharadita de orégano oaxaqueño seco</li>
+                                    <li>1/2 cucharadita de comino molido</li>
+                                </ul>
+
+                                <p class="receta-ingredientes-label">Para el maíz:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>800 g de maíz cacahuazintle precocido y lavado</li>
+                                </ul>
+
+                                <p class="receta-ingredientes-label">Para la guarnición:</p>
+                                <ul class="receta-ingredientes">
+                                    <li>Repollo o lechuga oaxaqueña finamente picada</li>
+                                    <li>Cebolla morada finamente picada</li>
+                                    <li>Orégano seco y chile seco molido</li>
+                                    <li>Limones partidos y rábanos rebanados</li>
+                                    <li>Tostadas y queso fresco desmoronado</li>
+                                </ul>
+
+                                <p class="receta-ingredientes-label">Preparación:</p>
+                                <ol class="receta-pasos">
+                                    <li><strong>Cocer la carne y el maíz.</strong> Pon la espaldilla y el codillo en una olla grande con 4 litros de agua fría, la cabeza de ajo, la cebolla y sal. Lleva a hervor fuerte, desespuma bien durante los primeros 10 minutos. Agrega el maíz cacahuazintle, baja el fuego y cuece a fuego medio 1 hora 45 minutos o hasta que el maíz reviente y la carne esté muy suave.</li>
+                                    <li><strong>Tostar y remojar los chiles.</strong> Pasa los chiles mulatos, chilhuacles negros y pasillas por un comal caliente sin aceite, 20 segundos por lado, hasta que perfumen pero sin quemarlos. Remójalos en agua caliente 20 minutos hasta que estén suaves. Escurre y reserva 1 taza del agua de remojo.</li>
+                                    <li><strong>Asar las verduras.</strong> En el mismo comal, asa los jitomates, la cebolla y los ajos a fuego alto hasta que tengan manchas oscuras por todos lados, unos 12 minutos. Asa también la tortilla hasta que quede negra y crujiente: esto le da el color oscuro característico al pozole.</li>
+                                    <li><strong>Licuar la salsa negra.</strong> Licúa los chiles escurridos con los jitomates asados, la cebolla, el ajo, la tortilla tostada negra, el orégano, el comino y el agua de remojo reservada hasta obtener una salsa muy tersa. Cuela.</li>
+                                    <li><strong>Freír y sazonar la salsa.</strong> Calienta la manteca en una olla mediana a fuego alto hasta que humee. Vierte la salsa colada de golpe y fríela 8 minutos revolviendo constantemente hasta que oscurezca aún más y espese. Sazona con sal.</li>
+                                    <li><strong>Armar el pozole.</strong> Saca la carne cocida, deshébrala gruesa y regresa al caldo. Vierte la salsa negra frita al caldo con el maíz reventado, mezcla bien y hierve 20 minutos a fuego medio para que todo se integre. Ajusta sal. El caldo debe quedar oscuro, casi negro, brillante y con cuerpo.</li>
+                                </ol>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+
+
+    <section class="podcast container" id="podcast">
+        <div class="section-heading">
+            <span class="eyebrow">Nuestro podcast</span>
+            <h2>El Nido del Colibrí</h2>
+            <p>
+                Charlas sobre café, arte popular y los vecinos que le dan vida al barrio. Nuevo episodio cada
+                quincena — dale play mientras te tomas tu café.
+            </p>
+        </div>
+
+        <!--
+            Para conectar el audio real de cada episodio, agrega la ruta del archivo
+            al atributo src de la etiqueta <audio>, por ejemplo:
+            <audio controls src="podcast/episodio-01.mp3"></audio>
+            También puedes pegar un iframe de Spotify/Apple Podcasts en vez del <audio>.
+        -->
+        <div class="podcast-grid">
+
+            <article class="podcast-card" style="--accent:#e6007e">
+                <div class="podcast-card-top">
+                    <span class="podcast-num">Ep. 01</span>
+                    <span class="podcast-dur">24 min</span>
+                </div>
+                <h3>El origen de los alebrijes</h3>
+                <p>De dónde viene el nombre del café y la leyenda detrás de estas criaturas de colores.</p>
+                <audio controls></audio>
+            </article>
+
+            <article class="podcast-card" style="--accent:#00b3a4">
+                <div class="podcast-card-top">
+                    <span class="podcast-num">Ep. 02</span>
+                    <span class="podcast-dur">31 min</span>
+                </div>
+                <h3>De la milpa a la taza</h3>
+                <p>Platicamos con productores de café de altura sobre el camino del grano hasta tu mesa.</p>
+                <audio controls></audio>
+            </article>
+
+            <article class="podcast-card" style="--accent:#1f6fd6">
+                <div class="podcast-card-top">
+                    <span class="podcast-num">Ep. 03</span>
+                    <span class="podcast-dur">27 min</span>
+                </div>
+                <h3>Voces del barrio</h3>
+                <p>Artesanos y vecinos que exponen su trabajo en nuestras paredes cuentan su historia.</p>
+                <audio controls></audio>
+            </article>
+
+            <article class="podcast-card" style="--accent:#ff9000">
+                <div class="podcast-card-top">
+                    <span class="podcast-num">Ep. 04</span>
+                    <span class="podcast-dur">22 min</span>
+                </div>
+                <h3>Crónicas del foro</h3>
+                <p>Lo que pasa detrás de cámaras en nuestras noches de música en vivo.</p>
+                <audio controls></audio>
+            </article>
+
+        </div>
+    </section>
+
+
+    <section class="videos container" id="videos">
+        <div class="section-heading">
+            <span class="eyebrow">Video</span>
+            <h2>Momentos en El Alebrije</h2>
+            <p>Un vistazo a lo que se vive aquí: cocina, arte y música. Da clic para reproducir.</p>
+        </div>
+
+        <!--
+            Para conectar cada video, cambia el atributo data-video por el ID de YouTube
+            (lo que va después de "v=" en la URL) o por la ruta de un archivo local, por ejemplo:
+            data-video="dQw4w9WgXcQ"  ->  se incrusta https://www.youtube.com/embed/dQw4w9WgXcQ
+        -->
+        <div class="video-grid">
+
+            <button class="video-card" style="--accent:#e6007e" data-video="" data-title="Un día en El Alebrije">
+                <span class="video-play">▶</span>
+                <span class="video-label">Un día en El Alebrije</span>
+            </button>
+
+            <button class="video-card" style="--accent:#00b3a4" data-video="" data-title="Ritual del café de olla">
+                <span class="video-play">▶</span>
+                <span class="video-label">Ritual del café de olla</span>
+            </button>
+
+            <button class="video-card" style="--accent:#1f6fd6" data-video="" data-title="Pintando alebrijes">
+                <span class="video-play">▶</span>
+                <span class="video-label">Pintando alebrijes</span>
+            </button>
+
+            <button class="video-card" style="--accent:#ff9000" data-video="" data-title="Noche de jazz en el patio">
+                <span class="video-play">▶</span>
+                <span class="video-label">Noche de jazz en el patio</span>
+            </button>
+
+        </div>
+    </section>
+
+    <div class="pedido-modal" id="pedido-modal">
+        <div class="pedido-modal-inner">
+            <button class="pedido-modal-close" id="pedido-modal-close" aria-label="Cerrar">✕</button>
+            <h3>📝 ¡Ya casi! Completa tu pedido</h3>
+            <p class="pedido-modal-sub">Cuéntanos cómo lo quieres y con cuánto vas a pagar, así te atendemos más rápido 😊</p>
+            <p class="pedido-folio">Folio de tu pedido: <strong id="pedido-folio-valor">—</strong></p>
+
+            <div class="pedido-modal-group">
+                <span class="pedido-modal-label">¿Cómo lo quieres?</span>
+                <div class="pedido-modal-opciones">
+                    <label class="pedido-modal-pill">
+                        <input type="radio" name="pedido-tipo" value="Para llevar" checked>
+                        <span>Para llevar ($10)</span>
+                    </label>
+                    <label class="pedido-modal-pill">
+                        <input type="radio" name="pedido-tipo" value="Para comer aquí">
+                        <span>🍽️ Para comer aquí</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pedido-modal-group">
+                <span class="pedido-modal-label">¿Cómo vas a pagar?</span>
+                <div class="pedido-modal-opciones">
+                    <label class="pedido-modal-pill">
+                        <input type="radio" name="pedido-pago" value="Efectivo" checked>
+                        <span>💵 Efectivo</span>
+                    </label>
+                    <label class="pedido-modal-pill">
+                        <input type="radio" name="pedido-pago" value="Transferencia">
+                        <span>🏦 Transferencia</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pedido-modal-group" id="pedido-pago-efectivo">
+                <label class="pedido-modal-label" for="pedido-monto-pago">💵 ¿Con cuánto vas a pagar?</label>
+                <input type="text" id="pedido-monto-pago" class="pedido-modal-input" placeholder="Ej. $200">
+                <p class="pedido-modal-hint" id="pedido-monto-error">Por favor indícanos con cuánto vas a pagar 🙏</p>
+            </div>
+
+            <div class="pedido-modal-group transferencia-datos" id="pedido-pago-transferencia" hidden>
+                <span class="pedido-modal-label">🏦 Datos para tu transferencia</span>
+                <div class="transferencia-caja">
+                    <p><strong>Banco:</strong> <span id="dato-banco"></span></p>
+                    <p><strong>Titular:</strong> <span id="dato-titular"></span></p>
+                    <p><strong>CLABE:</strong> <span id="dato-clabe"></span></p>
+                    <p><strong>Número de cuenta:</strong> <span id="dato-tarjeta"></span></p>
+                    <button type="button" class="transferencia-copiar-btn" id="transferencia-copiar-btn">Copiar datos</button>
+                </div>
+
+                <label class="pedido-modal-label transferencia-nombre-label" for="pedido-nombre-transfiere">¿A nombre de quién vas a transferir?</label>
+                <input type="text" id="pedido-nombre-transfiere" class="pedido-modal-input" placeholder="Tu nombre">
+                <p class="pedido-modal-hint" id="pedido-nombre-error">Escribe tu nombre para poder identificar tu pago 🙏</p>
+
+                <p class="transferencia-nota">💡 Usa el folio <strong id="pedido-folio-transferencia">—</strong> como concepto o referencia de tu transferencia. Así, además del comprobante, podemos ubicar tu pago directo en el banco.</p>
+                <p class="transferencia-nota">📸 No olvides enviarnos tu comprobante de transferencia por este mismo chat de WhatsApp.</p>
+
+                <label class="pedido-confirmo">
+                    <input type="checkbox" id="pedido-confirmo-transferencia">
+                    <span>Ya realicé la transferencia</span>
+                </label>
+                <p class="pedido-modal-hint" id="pedido-confirmo-error">Por favor confirma que ya hiciste la transferencia antes de enviar tu pedido 🙏</p>
+            </div>
+
+            <button type="button" class="pedido-modal-enviar" id="pedido-modal-enviar">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39c1.45.79 3.08 1.21 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.76 13.98c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.13.11-1.83-.12-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.79-4.17-4.94-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.28.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.29.36-.42.49-.14.14-.28.29-.12.57.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.61-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.87.27.14.45.2.51.32.07.12.07.68-.17 1.35z"/></svg>
+                Enviar pedido por WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <div class="video-modal" id="video-modal">
+        <div class="video-modal-inner">
+            <button class="video-modal-close" id="video-modal-close" aria-label="Cerrar video">✕</button>
+            <div class="video-modal-frame" id="video-modal-frame"></div>
+        </div>
+    </div>
+
+
+    <section class="maps container" id="ubicacion">
+        <div class="maps-txt">
+            <span class="eyebrow">Ubicación</span>
+            <h2>¡Visita nuestra cafetería!</h2>
+            <p>
+                Te esperamos con una mesa, buen café y buena plática. Encuéntranos fácilmente con el mapa o
+                da clic en "Cómo llegar".
+            </p>
+
+            <ul class="info-list">
+                <li><strong>Horario:</strong> Lunes a Viernes · 10:00 AM – 20:00 PM</li>
+                <li><strong>Teléfono:</strong> (55) 1822 1646</li>
+                <li><strong>Correo:</strong> hola@elalebrije.cafe</li>
+            </ul>
+
+            <a href="https://maps.app.goo.gl/AVwMh6oQaQCv3z8z7" target="_blank" rel="noopener" class="btn-1">Cómo llegar</a>
+        </div>
+        <div class="maps-img">
+            <iframe
+                class="map-embed"
+                src="https://www.google.com/maps?q=19.301546879394223,-98.89976568884474&z=16&output=embed"
+                title="Ubicación de Café Cultural El Alebrije"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </section>
+
+    <footer class="footer" id="contacto">
+        <div class="footer-content container">
+
+            <div class="link footer-brand">
+                <img src="imagenes/logo.png" alt="Café Cultural El Alebrije" class="footer-logo">
+                <p class="footer-tagline">Café, arte y comunidad bajo un mismo techo.</p>
+            </div>
+
+            <div class="link">
+                <h3>Explora</h3>
+                <ul>
+                    <li><a href="#promo-desayuno">Promociones</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#productos">Menú</a></li>
+                    <li><a href="#podcast">Podcast</a></li>
+                    <li><a href="#videos">Videos</a></li>
+                </ul>
+            </div>
+
+            <div class="link">
+                <h3>Contacto</h3>
+                <ul>
+                    <li><a href="tel:+525518221646">(55) 1822 1646</a></li>
+                    <li><a href="mailto:hola@elalebrije.cafe">hola@elalebrije.cafe</a></li>
+                    <li><a href="#ubicacion">Ver ubicación</a></li>
+                </ul>
+            </div>
+
+            <div class="link">
+                <h3>Síguenos</h3>
+                <ul>
+                    <li><a href="https://www.facebook.com/profile.php?id=100088009745113" target="_blank" rel="noopener">Facebook</a></li>
+                    <li><a href="https://chat.whatsapp.com/JquklU3wgxf6BgUU9j4NRU?mode=gi_t" target="_blank" rel="noopener">WhatsApp</a></li>
+                    <li><a href="#podcast">Podcast</a></li>
+                </ul>
+            </div>
+
+        </div>
+        <p class="footer-copy">© 2026 Café Cultural El Alebrije. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
