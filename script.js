@@ -21,28 +21,131 @@ if (darkModeToggle) {
 }
 
 // =====================================================================
+// PANEL OCULTO DE EDICIÓN (Menú, Noticias, Promociones)
+// =====================================================================
+// El panel NO aparece para nadie por defecto. Solo se activa entrando a
+// esta página con el siguiente texto pegado al final del link, en la barra
+// de direcciones:
+//
+//   #panel-secreto-alebrije
+//
+// Ejemplo: https://tu-usuario.github.io/cafe-el-alebrije/#panel-secreto-alebrije
+//
+// Al entrar así, pide una contraseña (la que se configuró en Vercel, variable
+// ADMIN_PASSWORD). Si es correcta, aparecen los botones de "editar" en Menú,
+// Noticias y Promociones. Los cambios que se guarden ahí se ven de inmediato
+// para CUALQUIER visitante del sitio, en cualquier dispositivo.
+//
+// ⚠️ Cambia "panel-secreto-alebrije" por otra palabra tuya antes de publicar,
+// para que sea aún más difícil de adivinar.
+const PANEL_SECRETO_HASH = '#panel-secreto-alebrije';
+const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
+
+// ⚠️ Mismo dominio de Vercel que configuraste para Mercado Pago.
+const API_BASE_URL = 'https://TU-PROYECTO.vercel.app/api';
+
+let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+let contenidoServidor = { noticias: null, promociones: null, menu: {} };
+
+function mostrarBotonesAdmin(mostrar){
+    document.querySelectorAll('.solo-admin').forEach((el) => {
+        el.hidden = !mostrar;
+    });
+}
+
+async function intentarActivarPanelSecreto(){
+    if (window.location.hash !== PANEL_SECRETO_HASH) return;
+
+    // Limpia el hash de la barra de direcciones para que no quede visible.
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    if (modoAdmin) {
+        mostrarBotonesAdmin(true);
+        return;
+    }
+
+    const clave = window.prompt('Contraseña del panel de edición:');
+    if (!clave) return;
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/admin-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: clave })
+        });
+        const datos = await resp.json();
+        if (resp.ok && datos.ok) {
+            modoAdmin = true;
+            sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
+            mostrarBotonesAdmin(true);
+            alert('Panel de edición activado en esta pestaña.');
+        } else {
+            alert('Contraseña incorrecta.');
+        }
+    } catch (err) {
+        console.error('Error activando panel:', err);
+        alert('No se pudo conectar con el panel. Revisa tu conexión.');
+    }
+}
+
+// Contraseña guardada para esta sesión (para no pedirla en cada guardado).
+function obtenerClaveAdmin(){
+    return sessionStorage.getItem('elalebrije-admin-clave') || '';
+}
+
+async function guardarContenidoEnServidor(tipo, datos){
+    let clave = obtenerClaveAdmin();
+    if (!clave) {
+        clave = window.prompt('Contraseña del panel para guardar el cambio:') || '';
+        if (!clave) return false;
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/content`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo, datos, password: clave })
+        });
+        if (resp.status === 401) {
+            alert('Contraseña incorrecta. El cambio no se guardó.');
+            sessionStorage.removeItem('elalebrije-admin-clave');
+            return false;
+        }
+        if (!resp.ok) throw new Error('Respuesta no válida');
+        sessionStorage.setItem('elalebrije-admin-clave', clave);
+        return true;
+    } catch (err) {
+        console.error('Error guardando en servidor:', err);
+        alert('No se pudo guardar el cambio. Revisa tu conexión e intenta de nuevo.');
+        return false;
+    }
+}
+
+// Trae el contenido actual del servidor (si existe) antes de pintar nada.
+// Si el servidor no responde (sin internet, Vercel no configurado aún, etc.)
+// el sitio sigue funcionando con las listas de este archivo.
+const cargaContenidoServidor = fetch(`${API_BASE_URL}/content`)
+    .then((r) => r.ok ? r.json() : null)
+    .then((datos) => {
+        if (datos) contenidoServidor = datos;
+    })
+    .catch((err) => console.warn('No se pudo cargar contenido del servidor, usando el local:', err));
+
+// =====================================================================
 // NOTICIAS Y EVENTOS
 // =====================================================================
 // Esta es la lista de noticias/eventos que se muestran en la sección
-// "Noticias" del inicio. Para agregar, editar o quitar una noticia SIN
-// tocar nada más del código, edita esta lista:
+// "Noticias" del inicio. Es solo el punto de partida: en cuanto el panel
+// oculto de edición guarda un cambio, el sitio usa esa versión en vez de
+// esta lista, para todos los visitantes.
 //
 //   { fecha: "Sáb 14 sep", etiqueta: "Evento", titulo: "...", descripcion: "..." }
 //
 //   - fecha: texto corto, como se quiera mostrar (ej. "Sáb 14 sep", "Todo septiembre").
 //   - etiqueta: una palabra para clasificarla (ej. "Evento", "Aviso", "Exposición").
 //   - titulo / descripcion: el texto de la tarjeta.
-//
-// Copia un bloque como los de abajo (con llaves { } y coma al final) para
-// agregar una noticia nueva. Se muestran en el mismo orden en que están aquí.
-//
-// TIP: el sitio también trae un botón "✏️ Administrar noticias" (arriba de
-// la sección Noticias) para agregar/editar/borrar sin tocar código, con un
-// PIN de acceso (NOTICIAS_PIN, aquí abajo). OJO: esos cambios solo se ven en
-// el navegador donde se hicieron. Para que se vean igual para TODAS las
-// personas que visiten el sitio, hay que usar el botón "Copiar código para
-// el sitio" de ese panel y pegar el resultado aquí, reemplazando esta lista.
 const NOTICIAS = [
+
     {
         fecha: 'Sáb 14 sep',
         etiqueta: 'Evento',
@@ -69,6 +172,7 @@ const NOTICIAS_PIN = '2026';
 const NOTICIAS_STORAGE_KEY = 'elalebrije-noticias';
 
 function obtenerNoticiasActuales(){
+    if (contenidoServidor.noticias) return contenidoServidor.noticias;
     try {
         const guardadas = localStorage.getItem(NOTICIAS_STORAGE_KEY);
         if (guardadas) return JSON.parse(guardadas);
@@ -185,15 +289,6 @@ function cerrarNoticiasModal(){
 
 if (noticiasAdminBtn) {
     noticiasAdminBtn.addEventListener('click', () => {
-        if (!noticiasDesbloqueadas) {
-            const intento = window.prompt('Escribe el PIN para administrar las noticias:');
-            if (intento === null) return;
-            if (intento !== NOTICIAS_PIN) {
-                alert('PIN incorrecto.');
-                return;
-            }
-            noticiasDesbloqueadas = true;
-        }
         abrirNoticiasModal();
     });
 }
@@ -218,13 +313,19 @@ if (noticiasModalAgregar) {
 }
 
 if (noticiasModalGuardar) {
-    noticiasModalGuardar.addEventListener('click', () => {
+    noticiasModalGuardar.addEventListener('click', async () => {
         const nuevas = leerFormularioNoticias();
+        noticiasModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('noticias', nuevas);
+        noticiasModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.noticias = nuevas;
         try {
             localStorage.setItem(NOTICIAS_STORAGE_KEY, JSON.stringify(nuevas));
         } catch (err) { /* almacenamiento no disponible en este navegador */ }
         pintarNoticias();
         cerrarNoticiasModal();
+        alert('Noticias actualizadas: ya se ven así para todos los visitantes.');
     });
 }
 
@@ -278,6 +379,7 @@ const PROMOCIONES2_PIN = NOTICIAS_PIN;
 const PROMOCIONES2_STORAGE_KEY = 'elalebrije-promociones2';
 
 function obtenerPromociones2Actuales(){
+    if (contenidoServidor.promociones) return contenidoServidor.promociones;
     try {
         const guardadas = localStorage.getItem(PROMOCIONES2_STORAGE_KEY);
         if (guardadas) return JSON.parse(guardadas);
@@ -394,15 +496,6 @@ function cerrarPromo2Modal(){
 
 if (promo2AdminBtn) {
     promo2AdminBtn.addEventListener('click', () => {
-        if (!promos2Desbloqueadas) {
-            const intento = window.prompt('Escribe el PIN para administrar las promociones:');
-            if (intento === null) return;
-            if (intento !== PROMOCIONES2_PIN) {
-                alert('PIN incorrecto.');
-                return;
-            }
-            promos2Desbloqueadas = true;
-        }
         abrirPromo2Modal();
     });
 }
@@ -427,13 +520,19 @@ if (promo2ModalAgregar) {
 }
 
 if (promo2ModalGuardar) {
-    promo2ModalGuardar.addEventListener('click', () => {
+    promo2ModalGuardar.addEventListener('click', async () => {
         const nuevas = leerFormularioPromos2();
+        promo2ModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('promociones', nuevas);
+        promo2ModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.promociones = nuevas;
         try {
             localStorage.setItem(PROMOCIONES2_STORAGE_KEY, JSON.stringify(nuevas));
         } catch (err) { /* almacenamiento no disponible en este navegador */ }
         pintarPromociones2();
         cerrarPromo2Modal();
+        alert('Promociones actualizadas: ya se ven así para todos los visitantes.');
     });
 }
 
@@ -1016,6 +1115,13 @@ const pedidoMontoInput = document.getElementById('pedido-monto-pago');
 const pedidoMontoError = document.getElementById('pedido-monto-error');
 const pedidoPagoEfectivo = document.getElementById('pedido-pago-efectivo');
 const pedidoPagoTransferencia = document.getElementById('pedido-pago-transferencia');
+const pedidoPagoMercadoPago = document.getElementById('pedido-pago-mercadopago');
+const mercadopagoError = document.getElementById('mercadopago-error');
+const pedidoModalEnviarTexto = document.getElementById('pedido-modal-enviar-texto');
+
+// ⚠️ URL de tu función de Mercado Pago (Vercel). Reemplázala por la tuya
+// cuando termines el paso de despliegue en Vercel (ver guía).
+const MERCADOPAGO_API_URL = 'https://TU-PROYECTO.vercel.app/api/create-preference';
 const pedidoNombreTransfiereInput = document.getElementById('pedido-nombre-transfiere');
 const pedidoNombreError = document.getElementById('pedido-nombre-error');
 const transferenciaCopiarBtn = document.getElementById('transferencia-copiar-btn');
@@ -1063,13 +1169,20 @@ if (transferenciaCopiarBtn) {
 // "transferencia" (datos bancarios + nombre de quien transfiere)
 document.querySelectorAll('input[name="pedido-pago"]').forEach((input) => {
     input.addEventListener('change', () => {
-        const esTransferencia = input.value === 'Transferencia' && input.checked;
         if (!input.checked) return;
-        if (pedidoPagoEfectivo) pedidoPagoEfectivo.hidden = esTransferencia;
-        if (pedidoPagoTransferencia) pedidoPagoTransferencia.hidden = !esTransferencia;
+        const metodo = input.value;
+        if (pedidoPagoEfectivo) pedidoPagoEfectivo.hidden = metodo !== 'Efectivo';
+        if (pedidoPagoTransferencia) pedidoPagoTransferencia.hidden = metodo !== 'Transferencia';
+        if (pedidoPagoMercadoPago) pedidoPagoMercadoPago.hidden = metodo !== 'MercadoPago';
         if (pedidoMontoError) pedidoMontoError.classList.remove('show');
         if (pedidoNombreError) pedidoNombreError.classList.remove('show');
         if (pedidoConfirmoError) pedidoConfirmoError.classList.remove('show');
+        if (mercadopagoError) mercadopagoError.hidden = true;
+        if (pedidoModalEnviarTexto) {
+            pedidoModalEnviarTexto.textContent = metodo === 'MercadoPago'
+                ? 'Pagar con Mercado Pago'
+                : 'Enviar pedido por WhatsApp';
+        }
     });
 });
 
@@ -1118,6 +1231,51 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Arma la lista de items del carrito (nombre + precio) y el cargo de "para
+// llevar", y le pide a nuestra función de Mercado Pago que cree el cobro por
+// el total exacto. Si todo sale bien, manda al cliente a la pantalla de pago.
+async function pagarConMercadoPago(){
+    const filas = [...lista.querySelectorAll('tr')];
+    const tipoPedidoInput = document.querySelector('input[name="pedido-tipo"]:checked');
+    const tipoPedido = tipoPedidoInput ? tipoPedidoInput.value : 'Para llevar';
+    const esParaLlevar = tipoPedido === 'Para llevar';
+
+    const items = filas.map((fila) => {
+        const nombre = fila.children[1] ? fila.children[1].textContent.trim() : 'Producto';
+        const precioTexto = fila.children[2] ? fila.children[2].textContent.trim() : '';
+        const precio = parseFloat(precioTexto.replace('$', ''));
+        return { nombre, precio: isNaN(precio) ? 0 : precio };
+    });
+
+    if (esParaLlevar) {
+        items.push({ nombre: 'Para llevar', precio: 10 });
+    }
+
+    if (pedidoModalEnviar) pedidoModalEnviar.disabled = true;
+    if (mercadopagoError) mercadopagoError.hidden = true;
+
+    try {
+        const respuesta = await fetch(MERCADOPAGO_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folio: pedidoFolioActual, items })
+        });
+
+        if (!respuesta.ok) throw new Error('Respuesta no válida del servidor de pagos');
+
+        const datos = await respuesta.json();
+        if (!datos.init_point) throw new Error('No se recibió el link de pago');
+
+        vaciarCarrito();
+        window.location.href = datos.init_point;
+    } catch (err) {
+        console.error('Error al iniciar pago con Mercado Pago:', err);
+        if (mercadopagoError) mercadopagoError.hidden = false;
+    } finally {
+        if (pedidoModalEnviar) pedidoModalEnviar.disabled = false;
+    }
+}
+
 if (pedidoModalEnviar) {
     pedidoModalEnviar.addEventListener('click', () => {
         const filas = [...lista.querySelectorAll('tr')];
@@ -1128,6 +1286,12 @@ if (pedidoModalEnviar) {
 
         const metodoPagoInput = document.querySelector('input[name="pedido-pago"]:checked');
         const metodoPago = metodoPagoInput ? metodoPagoInput.value : 'Efectivo';
+
+        if (metodoPago === 'MercadoPago') {
+            pagarConMercadoPago();
+            return;
+        }
+
         const esTransferencia = metodoPago === 'Transferencia';
 
         const monto = pedidoMontoInput ? pedidoMontoInput.value.trim() : '';
@@ -1211,3 +1375,118 @@ if (pedidoModalEnviar) {
 
 // Estado inicial (carrito vacío al cargar la página)
 actualizarResumenCarrito();
+
+// =====================================================================
+// EDICIÓN DEL MENÚ (nombre, descripción y precio) desde el panel oculto
+// =====================================================================
+// Cada platillo/bebida tiene un "data-item-id" fijo en el HTML. Los cambios
+// guardados aquí se guardan como "sobreescrituras" (overrides) en el
+// servidor y se aplican encima del HTML original en cada visita.
+
+function aplicarOverridesMenu(){
+    const overrides = contenidoServidor.menu || {};
+    Object.keys(overrides).forEach((itemId) => {
+        const cambio = overrides[itemId];
+        document.querySelectorAll(`[data-item-id="${itemId}"]`).forEach((tarjeta) => {
+            if (cambio.nombre) {
+                const titulo = tarjeta.querySelector('h3, .menu-item-name');
+                if (titulo) titulo.textContent = cambio.nombre;
+                tarjeta.setAttribute('data-name', cambio.nombre);
+            }
+            if (cambio.descripcion !== undefined) {
+                const desc = tarjeta.querySelector('.menu-item-desc, .product-txt > p:not(.precio)');
+                if (desc) desc.textContent = cambio.descripcion;
+            }
+            if (cambio.precio !== undefined && cambio.precio !== '') {
+                const precioTxt = `$${cambio.precio}`;
+                const precioEl = tarjeta.querySelector('[data-price-display]');
+                if (precioEl) precioEl.textContent = precioTxt;
+                tarjeta.setAttribute('data-base-price', cambio.precio);
+            }
+        });
+    });
+}
+
+// Agrega un botón "✏️" (solo visible en modo admin) a cada tarjeta del menú
+// que NO tenga opciones que cambien el precio (sabor/tamaño con su propio
+// precio), para editar con seguridad nombre, descripción y precio sin
+// romper esa lógica.
+function inyectarBotonesEdicionMenu(){
+    document.querySelectorAll('[data-item-id]').forEach((tarjeta) => {
+        if (tarjeta.querySelector('.menu-edit-btn')) return; // ya tiene botón
+
+        const tieneOpcionesConPrecio = !!tarjeta.querySelector('.item-options [data-price], .item-options [data-affects-price]');
+        const itemId = tarjeta.getAttribute('data-item-id');
+
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'menu-edit-btn solo-admin';
+        boton.hidden = !modoAdmin;
+        boton.title = tieneOpcionesConPrecio
+            ? 'Este platillo tiene sabores/tamaños con precio propio: edítalo desde el código para no romper los precios.'
+            : 'Editar nombre, descripción o precio';
+        boton.textContent = '✏️';
+        boton.style.cssText = 'margin-left:6px;cursor:pointer;border:none;background:transparent;font-size:0.9rem;';
+
+        boton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (tieneOpcionesConPrecio) {
+                alert('Este platillo tiene varios precios según la opción elegida (sabor, tamaño, etc.). Para no romper esos precios, edítalo directo en inicio.html/script.js. Si quieres, dime cuál es y te digo exactamente qué línea cambiar.');
+                return;
+            }
+
+            const nombreActual = tarjeta.getAttribute('data-name') || '';
+            const descEl = tarjeta.querySelector('.menu-item-desc, .product-txt > p:not(.precio)');
+            const descActual = descEl ? descEl.textContent.trim() : '';
+            const precioActual = tarjeta.getAttribute('data-base-price') || '';
+
+            const nuevoNombre = window.prompt('Nombre del platillo/bebida:', nombreActual);
+            if (nuevoNombre === null) return;
+            const nuevaDescripcion = window.prompt('Descripción:', descActual);
+            if (nuevaDescripcion === null) return;
+            const nuevoPrecioTxt = window.prompt('Precio (solo el número, sin $):', precioActual);
+            if (nuevoPrecioTxt === null) return;
+
+            const nuevoPrecio = nuevoPrecioTxt.trim() === '' ? '' : Number(nuevoPrecioTxt.trim());
+            if (nuevoPrecioTxt.trim() !== '' && isNaN(nuevoPrecio)) {
+                alert('El precio debe ser un número. No se guardó el cambio.');
+                return;
+            }
+
+            const overrides = { ...(contenidoServidor.menu || {}) };
+            overrides[itemId] = {
+                nombre: nuevoNombre.trim(),
+                descripcion: nuevaDescripcion.trim(),
+                precio: nuevoPrecio
+            };
+
+            const ok = await guardarContenidoEnServidor('menu', overrides);
+            if (!ok) return;
+
+            contenidoServidor.menu = overrides;
+            aplicarOverridesMenu();
+            alert('Cambio guardado: ya se ve así para todos los visitantes.');
+        });
+
+        const encabezado = tarjeta.querySelector('h3, .menu-item-head');
+        if (encabezado) encabezado.appendChild(boton);
+    });
+}
+
+// Cuando llega el contenido del servidor: aplica noticias, promos y menú.
+cargaContenidoServidor.then(() => {
+    pintarNoticias();
+    pintarPromociones2();
+    aplicarOverridesMenu();
+    inyectarBotonesEdicionMenu();
+    if (modoAdmin) mostrarBotonesAdmin(true);
+});
+
+// Revisa si se entró con el link secreto del panel de edición.
+intentarActivarPanelSecreto();
+if (modoAdmin) {
+    mostrarBotonesAdmin(true);
+    inyectarBotonesEdicionMenu();
+}
