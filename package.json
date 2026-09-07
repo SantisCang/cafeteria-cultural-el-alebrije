@@ -1,0 +1,10 @@
+{
+  "name": "cafe-el-alebrije-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Funciones serverless (Vercel) para Mercado Pago y el panel de edición del sitio.",
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
+}
