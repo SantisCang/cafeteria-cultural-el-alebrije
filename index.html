@@ -105,7 +105,7 @@
                 <h2>Noticias y próximos eventos</h2>
                 <p>Música en vivo, exposiciones y avisos importantes de Café Cultural El Alebrije.</p>
             </div>
-            <button type="button" class="noticias-admin-btn" id="noticias-admin-btn">✏️ Administrar noticias</button>
+            <button type="button" class="noticias-admin-btn solo-admin" id="noticias-admin-btn" hidden>✏️ Administrar noticias</button>
         </div>
 
         <!--
@@ -123,8 +123,8 @@
             <button class="noticias-modal-close" id="noticias-modal-close" aria-label="Cerrar">✕</button>
             <h3>📰 Administrar noticias</h3>
             <p class="noticias-modal-sub">
-                Agrega, edita o elimina lo que se muestra en la sección de Noticias. Los cambios se
-                guardan en este navegador y se ven de inmediato en esta página.
+                Agrega, edita o elimina lo que se muestra en la sección de Noticias. Al darle a
+                "Guardar cambios" se actualiza de inmediato para todos los visitantes del sitio.
             </p>
 
             <div class="noticias-modal-lista" id="noticias-modal-lista"></div>
@@ -132,10 +132,8 @@
             <button type="button" class="noticias-modal-agregar" id="noticias-modal-agregar">+ Agregar noticia</button>
 
             <div class="noticias-modal-acciones">
-                <button type="button" class="noticias-modal-copiar" id="noticias-modal-copiar">Copiar código para el sitio</button>
-                <button type="button" class="pedido-modal-enviar noticias-modal-guardar" id="noticias-modal-guardar">Guardar cambios</button>
+                <button type="button" class="pedido-modal-enviar noticias-modal-guardar" id="noticias-modal-guardar">Guardar cambios (para todos)</button>
             </div>
-            <p class="noticias-modal-copiado" id="noticias-modal-copiado">✓ Código copiado. Pégalo en script.js (donde dice NOTICIAS) para que se vea igual para todas las personas que visiten el sitio.</p>
         </div>
     </div>
 
@@ -194,7 +192,7 @@
                 <h2>Eventos y ofertas especiales</h2>
                 <p>Noches temáticas y promociones de temporada de Café Cultural El Alebrije.</p>
             </div>
-            <button type="button" class="promo2-admin-btn" id="promo2-admin-btn">✏️ Administrar promociones</button>
+            <button type="button" class="promo2-admin-btn solo-admin" id="promo2-admin-btn" hidden>✏️ Administrar promociones</button>
         </div>
 
         <!--
@@ -212,8 +210,8 @@
             <button class="promo2-modal-close" id="promo2-modal-close" aria-label="Cerrar">✕</button>
             <h3>🎉 Administrar promociones</h3>
             <p class="promo2-modal-sub">
-                Agrega, edita o elimina lo que se muestra en "Más promociones". Los cambios se
-                guardan en este navegador y se ven de inmediato en esta página.
+                Agrega, edita o elimina lo que se muestra en "Más promociones". Al darle a
+                "Guardar cambios" se actualiza de inmediato para todos los visitantes del sitio.
             </p>
 
             <div class="promo2-modal-lista" id="promo2-modal-lista"></div>
@@ -221,10 +219,8 @@
             <button type="button" class="promo2-modal-agregar" id="promo2-modal-agregar">+ Agregar promoción</button>
 
             <div class="promo2-modal-acciones">
-                <button type="button" class="promo2-modal-copiar" id="promo2-modal-copiar">Copiar código para el sitio</button>
-                <button type="button" class="pedido-modal-enviar promo2-modal-guardar" id="promo2-modal-guardar">Guardar cambios</button>
+                <button type="button" class="pedido-modal-enviar promo2-modal-guardar" id="promo2-modal-guardar">Guardar cambios (para todos)</button>
             </div>
-            <p class="promo2-modal-copiado" id="promo2-modal-copiado">✓ Código copiado. Pégalo en script.js (donde dice PROMOCIONES2) para que se vea igual para todas las personas que visiten el sitio.</p>
         </div>
     </div>
 
@@ -273,7 +269,7 @@
         <h3 class="menu-block-title">Platillos destacados</h3>
         <div class="box-container" id="lista-1">
 
-            <div class="box cart-item" data-name="Molletes" data-base-price="40" data-image="imagenes/molletes.png">
+            <div class="box cart-item" data-name="Molletes" data-base-price="40" data-image="imagenes/molletes.png" data-item-id="molletes">
                 <img src="imagenes/molletes.png" alt="">
                 <div class="product-txt">
                     <h3>Molletes</h3>
@@ -290,7 +286,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Chilaquiles" data-base-price="45" data-image="imagenes/chilaquiles.png">
+            <div class="box cart-item" data-name="Chilaquiles" data-base-price="45" data-image="imagenes/chilaquiles.png" data-item-id="chilaquiles">
                 <img src="imagenes/chilaquiles.png" alt="">
                 <div class="product-txt">
                     <h3>Chilaquiles</h3>
@@ -313,7 +309,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Enchiladas Suizas" data-base-price="50" data-image="imagenes/enchiladas-suizas.png">
+            <div class="box cart-item" data-name="Enchiladas Suizas" data-base-price="50" data-image="imagenes/enchiladas-suizas.png" data-item-id="enchiladas-suizas">
                 <img src="imagenes/enchiladas-suizas.png" alt="">
                 <div class="product-txt">
                     <h3>Enchiladas Suizas</h3>
@@ -334,7 +330,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Capuchino" data-base-price="40" data-image="imagenes/capuchino.png">
+            <div class="box cart-item" data-name="Capuchino" data-base-price="40" data-image="imagenes/capuchino.png" data-item-id="capuchino">
                 <img src="imagenes/capuchino.png" alt="">
                 <div class="product-txt">
                     <h3>Capuchino</h3>
@@ -353,7 +349,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Comida Completa" data-base-price="70" data-image="imagenes/logo.png">
+            <div class="box cart-item" data-name="Comida Completa" data-base-price="70" data-image="imagenes/logo.png" data-item-id="comida-completa">
                 <img src="imagenes/logo.png" alt="Café Cultural El Alebrije">
                 <div class="product-txt">
                     <h3>Comida Completa</h3>
@@ -368,7 +364,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Comida Media" data-base-price="50" data-image="imagenes/logo.png">
+            <div class="box cart-item" data-name="Comida Media" data-base-price="50" data-image="imagenes/logo.png" data-item-id="comida-media">
                 <img src="imagenes/logo.png" alt="Café Cultural El Alebrije">
                 <div class="product-txt">
                     <h3>Comida Media</h3>
@@ -383,7 +379,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Frappé" data-base-price="60" data-image="imagenes/frappe.png">
+            <div class="box cart-item" data-name="Frappé" data-base-price="60" data-image="imagenes/frappe.png" data-item-id="frappe">
                 <img src="imagenes/frappe.png" alt="">
                 <div class="product-txt">
                     <h3>Frappé</h3>
@@ -405,7 +401,7 @@
                 </div>
             </div>
 
-            <div class="box cart-item" data-name="Ensalada" data-base-price="50" data-image="imagenes/ensalada.png">
+            <div class="box cart-item" data-name="Ensalada" data-base-price="50" data-image="imagenes/ensalada.png" data-item-id="ensalada">
                 <img src="imagenes/ensalada.png" alt="">
                 <div class="product-txt">
                     <h3>Ensalada</h3>
@@ -471,7 +467,7 @@
                     <div class="menu-sub">
                         <h5>Tradicionales</h5>
 
-                        <div class="menu-item cart-item" data-name="Expresso" data-base-price="40" data-image="imagenes/espresso.png">
+                        <div class="menu-item cart-item" data-name="Expresso" data-base-price="40" data-image="imagenes/espresso.png" data-item-id="expresso">
                             <img class="menu-item-thumb" src="imagenes/espresso.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Expresso</span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">Extracto de café corto, fuerte y espumoso.</p>
@@ -484,7 +480,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" id="menu-item-capuchino-latte" data-name="Capuchino" data-base-price="40" data-image="imagenes/capuchino.png">
+                        <div class="menu-item cart-item" id="menu-item-capuchino-latte" data-name="Capuchino" data-base-price="40" data-image="imagenes/capuchino.png" data-item-id="capuchino">
                             <img class="menu-item-thumb" src="imagenes/capuchino.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Capuchino</span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">Café expreso tradicional italiano combinado con un toque de leche y espuma cremosa.</p>
@@ -499,7 +495,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Latte" data-base-price="40" data-image="imagenes/latte.png">
+                        <div class="menu-item cart-item" data-name="Latte" data-base-price="40" data-image="imagenes/latte.png" data-item-id="latte">
                             <img class="menu-item-thumb" src="imagenes/latte.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Latte</span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">Expreso tradicional con leche cremada.</p>
@@ -514,7 +510,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Atole" data-base-price="40" data-image="imagenes/atole.png">
+                        <div class="menu-item cart-item" data-name="Atole" data-base-price="40" data-image="imagenes/atole.png" data-item-id="atole">
                             <img class="menu-item-thumb" src="imagenes/atole.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Atole</span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">Sin gluten, reducido en azúcar, fortificado con vitaminas y minerales.</p>
@@ -527,7 +523,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Americano" data-base-price="25" data-image="imagenes/americano.png">
+                        <div class="menu-item cart-item" data-name="Americano" data-base-price="25" data-image="imagenes/americano.png" data-item-id="americano">
                             <img class="menu-item-thumb" src="imagenes/americano.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Americano</span><span class="menu-item-price" data-price-display>$25</span></div>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
@@ -537,42 +533,42 @@
                     <div class="menu-sub">
                         <h5>Culturales</h5>
 
-                        <div class="menu-item cart-item" data-name="Café Lechero" data-base-price="45" data-image="imagenes/cafe-lechero.png">
+                        <div class="menu-item cart-item" data-name="Café Lechero" data-base-price="45" data-image="imagenes/cafe-lechero.png" data-item-id="cafe-lechero">
                             <img class="menu-item-thumb" src="imagenes/cafe-lechero.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Café Lechero</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Café al gusto y leche evaporada.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Café Bombón" data-base-price="45" data-image="imagenes/cafe-bombon.png">
+                        <div class="menu-item cart-item" data-name="Café Bombón" data-base-price="45" data-image="imagenes/cafe-bombon.png" data-item-id="cafe-bombon">
                             <img class="menu-item-thumb" src="imagenes/cafe-bombon.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Café Bombón</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Leche condensada con expreso tradicional adornado con espuma de leche.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Español" data-base-price="45" data-image="imagenes/espanol.png">
+                        <div class="menu-item cart-item" data-name="Español" data-base-price="45" data-image="imagenes/espanol.png" data-item-id="espanol">
                             <img class="menu-item-thumb" src="imagenes/espanol.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Español</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Café adornado con espuma de leche.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Vienés" data-base-price="45" data-image="imagenes/vienes.png">
+                        <div class="menu-item cart-item" data-name="Vienés" data-base-price="45" data-image="imagenes/vienes.png" data-item-id="vienes">
                             <img class="menu-item-thumb" src="imagenes/vienes.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Vienés</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Expreso con crema batida y toques de caramelo.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Candy Latte" data-base-price="45" data-image="imagenes/candy-latte.png">
+                        <div class="menu-item cart-item" data-name="Candy Latte" data-base-price="45" data-image="imagenes/candy-latte.png" data-item-id="candy-latte">
                             <img class="menu-item-thumb" src="imagenes/candy-latte.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Candy Latte</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Latte con toques de cajeta y vainilla.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Chocolate Caliente" data-base-price="60" data-image="imagenes/chocolate-caliente.png">
+                        <div class="menu-item cart-item" data-name="Chocolate Caliente" data-base-price="60" data-image="imagenes/chocolate-caliente.png" data-item-id="chocolate-caliente">
                             <img class="menu-item-thumb" src="imagenes/chocolate-caliente.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Chocolate Caliente</span><span class="menu-item-price" data-price-display>$60</span></div>
                             <div class="item-options">
@@ -589,19 +585,19 @@
                 <div class="menu-category">
                     <h4>Café Frío</h4>
                     <div class="menu-sub">
-                        <div class="menu-item cart-item" data-name="Ice Paradise" data-base-price="45" data-image="imagenes/ice-paradise.png">
+                        <div class="menu-item cart-item" data-name="Ice Paradise" data-base-price="45" data-image="imagenes/ice-paradise.png" data-item-id="ice-paradise">
                             <img class="menu-item-thumb" src="imagenes/ice-paradise.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Ice Paradise</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Espuma cremosa de café con leche fría.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
-                        <div class="menu-item cart-item" data-name="Afogato" data-base-price="45" data-image="imagenes/afogato.png">
+                        <div class="menu-item cart-item" data-name="Afogato" data-base-price="45" data-image="imagenes/afogato.png" data-item-id="afogato">
                             <img class="menu-item-thumb" src="imagenes/afogato.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Afogato</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Bola de helado de vainilla cubierta con expreso caliente.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
-                        <div class="menu-item cart-item" data-name="Capuchino Frío" data-base-price="45" data-image="imagenes/capuchino.png">
+                        <div class="menu-item cart-item" data-name="Capuchino Frío" data-base-price="45" data-image="imagenes/capuchino.png" data-item-id="capuchino-frio">
                             <img class="menu-item-thumb" src="imagenes/capuchino.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Capuchino Frío</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <div class="item-options">
@@ -614,7 +610,7 @@
                             </div>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
-                        <div class="menu-item cart-item" data-name="Latte Frío" data-base-price="45" data-image="imagenes/latte.png">
+                        <div class="menu-item cart-item" data-name="Latte Frío" data-base-price="45" data-image="imagenes/latte.png" data-item-id="latte-frio">
                             <img class="menu-item-thumb" src="imagenes/latte.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Latte Frío</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <div class="item-options">
@@ -633,7 +629,7 @@
                 <div class="menu-category">
                     <h4>Frappé</h4>
                     <div class="menu-sub">
-                        <div class="menu-item cart-item" data-name="Frappé" data-base-price="60" data-image="imagenes/frappe.png">
+                        <div class="menu-item cart-item" data-name="Frappé" data-base-price="60" data-image="imagenes/frappe.png" data-item-id="frappe">
                             <img class="menu-item-thumb" src="imagenes/frappe.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Frappé</span><span class="menu-item-price" data-price-display>$60</span></div>
                             <div class="item-options">
@@ -656,7 +652,7 @@
                 <div class="menu-category">
                     <h4>Té</h4>
                     <div class="menu-sub">
-                        <div class="menu-item cart-item" data-name="Té" data-base-price="45" data-image="imagenes/te.png">
+                        <div class="menu-item cart-item" data-name="Té" data-base-price="45" data-image="imagenes/te.png" data-item-id="te">
                             <img class="menu-item-thumb" src="imagenes/te.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Té</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <div class="item-options">
@@ -674,19 +670,19 @@
 
                     <div class="menu-sub">
                         <h5>Té de la Casa</h5>
-                        <div class="menu-item cart-item" data-name="Té Alebrije" data-base-price="45" data-image="imagenes/logo.png">
+                        <div class="menu-item cart-item" data-name="Té Alebrije" data-base-price="45" data-image="imagenes/logo.png" data-item-id="te-alebrije">
                             <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Alebrije</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Manzanilla y especias.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
-                        <div class="menu-item cart-item" data-name="Té Romántico" data-base-price="45" data-image="imagenes/logo.png">
+                        <div class="menu-item cart-item" data-name="Té Romántico" data-base-price="45" data-image="imagenes/logo.png" data-item-id="te-romantico">
                             <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Romántico</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Mezcla especial de frutos rojos.</p>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
-                        <div class="menu-item cart-item" data-name="Té Especial" data-base-price="45" data-image="imagenes/logo.png">
+                        <div class="menu-item cart-item" data-name="Té Especial" data-base-price="45" data-image="imagenes/logo.png" data-item-id="te-especial">
                             <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Especial</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Mezcla de finas especias.</p>
@@ -702,7 +698,7 @@
                 <div class="menu-category">
                     <div class="menu-sub">
 
-                        <div class="menu-item cart-item" data-name="Waffles" data-base-price="45" data-image="imagenes/waffles.png">
+                        <div class="menu-item cart-item" data-name="Waffles" data-base-price="45" data-image="imagenes/waffles.png" data-item-id="waffles">
                             <img class="menu-item-thumb" src="imagenes/waffles.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Waffles</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">4 piezas.</p>
@@ -737,7 +733,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Conchas Rellenas" data-base-price="45" data-image="imagenes/concha-rellena.png">
+                        <div class="menu-item cart-item" data-name="Conchas Rellenas" data-base-price="45" data-image="imagenes/concha-rellena.png" data-item-id="conchas-rellenas">
                             <img class="menu-item-thumb" src="imagenes/concha-rellena.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Conchas Rellenas</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <div class="item-options">
@@ -757,7 +753,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Rollo Alebrije" data-base-price="40" data-image="imagenes/logo.png">
+                        <div class="menu-item cart-item" data-name="Rollo Alebrije" data-base-price="40" data-image="imagenes/logo.png" data-item-id="rollo-alebrije">
                             <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Rollo Alebrije <span class="menu-item-tag">Especialidad de la casa</span></span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">De avena con frutos rojos y jarabe de chocolate.</p>
@@ -772,7 +768,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Crepas" data-base-price="" data-image="imagenes/crepa.png">
+                        <div class="menu-item cart-item" data-name="Crepas" data-base-price="" data-image="imagenes/crepa.png" data-item-id="crepas" data-precio-fijo="false">
                             <img class="menu-item-thumb" src="imagenes/crepa.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Crepas</span><span class="menu-item-price">Precio por confirmar</span></div>
                             <div class="item-options">
@@ -817,7 +813,7 @@
                 <div class="menu-category">
                     <div class="menu-sub">
 
-                        <div class="menu-item cart-item" id="menu-item-sandwich" data-name="Sandwich" data-base-price="40" data-image="imagenes/sandwich.png">
+                        <div class="menu-item cart-item" id="menu-item-sandwich" data-name="Sandwich" data-base-price="40" data-image="imagenes/sandwich.png" data-item-id="sandwich">
                             <img class="menu-item-thumb" src="imagenes/sandwich.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Sandwich</span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">Acompañado de jitomate, lechuga, cebolla y pretzels.</p>
@@ -847,7 +843,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" id="menu-item-molletes" data-name="Molletes" data-base-price="40" data-image="imagenes/molletes.png">
+                        <div class="menu-item cart-item" id="menu-item-molletes" data-name="Molletes" data-base-price="40" data-image="imagenes/molletes.png" data-item-id="molletes">
                             <img class="menu-item-thumb" src="imagenes/molletes.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Molletes</span><span class="menu-item-price" data-price-display>$40</span></div>
                             <p class="menu-item-desc">Acompañado de pico de gallo.</p>
@@ -861,7 +857,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Ensaladas" data-base-price="50" data-image="imagenes/ensalada.png">
+                        <div class="menu-item cart-item" data-name="Ensaladas" data-base-price="50" data-image="imagenes/ensalada.png" data-item-id="ensaladas">
                             <img class="menu-item-thumb" src="imagenes/ensalada.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Ensaladas</span><span class="menu-item-price" data-price-display>$50</span></div>
                             <p class="menu-item-desc">Base de lechuga, elige tus ingredientes.</p>
@@ -891,7 +887,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" id="menu-item-huevos-al-gusto" data-name="Huevos al Gusto" data-base-price="45" data-image="imagenes/huevos-al-gusto.png">
+                        <div class="menu-item cart-item" id="menu-item-huevos-al-gusto" data-name="Huevos al Gusto" data-base-price="45" data-image="imagenes/huevos-al-gusto.png" data-item-id="huevos-al-gusto">
                             <img class="menu-item-thumb" src="imagenes/huevos-al-gusto.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Huevos al Gusto</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <div class="item-options">
@@ -906,7 +902,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Omelette Relleno" data-base-price="50" data-image="imagenes/omelette.png">
+                        <div class="menu-item cart-item" data-name="Omelette Relleno" data-base-price="50" data-image="imagenes/omelette.png" data-item-id="omelette-relleno">
                             <img class="menu-item-thumb" src="imagenes/omelette.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Omelette Relleno</span><span class="menu-item-price" data-price-display>$50</span></div>
                             <div class="item-options">
@@ -920,7 +916,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" id="menu-item-chilaquiles" data-name="Chilaquiles" data-base-price="45" data-image="imagenes/chilaquiles.png">
+                        <div class="menu-item cart-item" id="menu-item-chilaquiles" data-name="Chilaquiles" data-base-price="45" data-image="imagenes/chilaquiles.png" data-item-id="chilaquiles">
                             <img class="menu-item-thumb" src="imagenes/chilaquiles.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Chilaquiles</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">Incluye bolillo.</p>
@@ -940,7 +936,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" data-name="Enchiladas Suizas" data-base-price="50" data-image="imagenes/enchiladas-suizas.png">
+                        <div class="menu-item cart-item" data-name="Enchiladas Suizas" data-base-price="50" data-image="imagenes/enchiladas-suizas.png" data-item-id="enchiladas-suizas">
                             <img class="menu-item-thumb" src="imagenes/enchiladas-suizas.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Enchiladas Suizas</span><span class="menu-item-price" data-price-display>$50</span></div>
                             <p class="menu-item-desc">4 piezas.</p>
@@ -958,7 +954,7 @@
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
 
-                        <div class="menu-item cart-item" id="menu-item-tacos-dorados" data-name="Tacos Dorados" data-base-price="45" data-image="imagenes/tacos-dorados.png">
+                        <div class="menu-item cart-item" id="menu-item-tacos-dorados" data-name="Tacos Dorados" data-base-price="45" data-image="imagenes/tacos-dorados.png" data-item-id="tacos-dorados">
                             <img class="menu-item-thumb" src="imagenes/tacos-dorados.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Tacos Dorados</span><span class="menu-item-price" data-price-display>$45</span></div>
                             <p class="menu-item-desc">4 piezas.</p>
@@ -983,7 +979,7 @@
             <div class="menu-panel" id="panel-corrida">
                 <div class="menu-category">
                     <div class="menu-sub">
-                        <div class="menu-item cart-item" data-name="Comida Media" data-base-price="50" data-image="imagenes/logo.png">
+                        <div class="menu-item cart-item" data-name="Comida Media" data-base-price="50" data-image="imagenes/logo.png" data-item-id="comida-media">
                             <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Comida Media</span><span class="menu-item-price" data-price-display>$50</span></div>
                             <p class="menu-item-desc">Arroz, frijoles o spaghetti (según el platillo del día), guisado y tortillas.</p>
@@ -994,7 +990,7 @@
                             </div>
                             <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
                         </div>
-                        <div class="menu-item cart-item" data-name="Comida Completa" data-base-price="70" data-image="imagenes/logo.png">
+                        <div class="menu-item cart-item" data-name="Comida Completa" data-base-price="70" data-image="imagenes/logo.png" data-item-id="comida-completa">
                             <img class="menu-item-thumb" src="imagenes/logo.png" alt="">
                             <div class="menu-item-head"><span class="menu-item-name">Comida Completa</span><span class="menu-item-price" data-price-display>$70</span></div>
                             <p class="menu-item-desc">Arroz, frijoles o spaghetti (según el platillo del día), guisado, consomé o sopa (según el platillo del día), agua de sabor y tortillas.</p>
@@ -1446,7 +1442,17 @@
                         <input type="radio" name="pedido-pago" value="Transferencia">
                         <span>🏦 Transferencia</span>
                     </label>
+                    <label class="pedido-modal-pill">
+                        <input type="radio" name="pedido-pago" value="MercadoPago">
+                        <span>💳 Tarjeta / SPEI (Mercado Pago)</span>
+                    </label>
                 </div>
+            </div>
+
+            <div class="pedido-modal-group transferencia-datos" id="pedido-pago-mercadopago" hidden>
+                <span class="pedido-modal-label">💳 Vas a pagar con Mercado Pago</span>
+                <p class="transferencia-nota">Al dar clic en "Pagar con Mercado Pago" se abrirá la pantalla segura de Mercado Pago con el total exacto de tu pedido. Puedes pagar con tarjeta de cualquier banco (BBVA, Santander, Banorte, Banco Azteca, etc.), transferencia SPEI o en efectivo en OXXO.</p>
+                <p class="transferencia-nota" id="mercadopago-error" hidden>❌ No pudimos abrir Mercado Pago. Intenta de nuevo o elige otra forma de pago.</p>
             </div>
 
             <div class="pedido-modal-group" id="pedido-pago-efectivo">
@@ -1481,7 +1487,7 @@
 
             <button type="button" class="pedido-modal-enviar" id="pedido-modal-enviar">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39c1.45.79 3.08 1.21 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.76 13.98c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.13.11-1.83-.12-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.79-4.17-4.94-4.36-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.28.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.29.36-.42.49-.14.14-.28.29-.12.57.16.28.71 1.18 1.53 1.91 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.61-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.87.27.14.45.2.51.32.07.12.07.68-.17 1.35z"/></svg>
-                Enviar pedido por WhatsApp
+                <span id="pedido-modal-enviar-texto">Enviar pedido por WhatsApp</span>
             </button>
         </div>
     </div>
