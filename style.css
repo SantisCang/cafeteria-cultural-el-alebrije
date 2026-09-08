@@ -29,6 +29,7 @@ section[id], header[id] {
     display: flex;
     align-items: center;
     min-height: 70vh;
+    padding-top: 110px;
     position: relative;
     overflow: hidden;
 }
