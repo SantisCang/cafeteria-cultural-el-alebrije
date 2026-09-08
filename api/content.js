@@ -9,7 +9,7 @@
 
 import { kv } from '@vercel/kv';
 
-const TIPOS_VALIDOS = ['noticias', 'promociones', 'menu', 'podcast', 'videos'];
+const TIPOS_VALIDOS = ['noticias', 'promociones', 'menu', 'podcast', 'videos', 'recetas', 'inicio'];
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,19 +23,23 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
         try {
-            const [noticias, promociones, menu, podcast, videos] = await Promise.all([
+            const [noticias, promociones, menu, podcast, videos, recetas, inicio] = await Promise.all([
                 kv.get('contenido:noticias'),
                 kv.get('contenido:promociones'),
                 kv.get('contenido:menu'),
                 kv.get('contenido:podcast'),
-                kv.get('contenido:videos')
+                kv.get('contenido:videos'),
+                kv.get('contenido:recetas'),
+                kv.get('contenido:inicio')
             ]);
             res.status(200).json({
                 noticias: noticias || null,
                 promociones: promociones || null,
                 menu: menu || {},
                 podcast: podcast || null,
-                videos: videos || null
+                videos: videos || null,
+                recetas: recetas || null,
+                inicio: inicio || null
             });
         } catch (err) {
             console.error('Error leyendo contenido:', err);

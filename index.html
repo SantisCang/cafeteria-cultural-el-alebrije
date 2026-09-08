@@ -10,6 +10,37 @@
 </head>
 <body>
 
+    <div id="frase-dia-banner" class="frase-dia-banner" hidden>
+        <button type="button" class="frase-dia-cerrar" id="frase-dia-cerrar" aria-label="Cerrar">✕</button>
+        <img id="frase-dia-img" src="" alt="Aviso del día">
+    </div>
+
+    <button type="button" class="noticias-admin-btn solo-admin" id="frase-dia-admin-btn" hidden style="position:fixed; top:10px; right:10px; z-index:9998;">📌 Frase del día</button>
+
+    <div class="noticias-modal" id="frase-dia-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="frase-dia-modal-close" aria-label="Cerrar">✕</button>
+            <h3>📌 Publicar frase / imagen del día</h3>
+            <p class="noticias-modal-sub">
+                Sube una imagen (saludo, día festivo, recordatorio, etc.). Se va a mostrar arriba
+                de la página para TODOS los visitantes durante las próximas 24 horas exactas, y
+                después desaparece sola — no hay que quitarla a mano.
+            </p>
+            <div class="noticia-form">
+                <label>Imagen</label>
+                <input type="file" id="frase-dia-form-archivo" accept="image/*">
+                <p id="frase-dia-form-preview-wrap" hidden style="margin-top:10px;">
+                    <img id="frase-dia-form-preview" style="max-width:100%; border-radius:10px;" alt="Vista previa">
+                </p>
+            </div>
+            <div class="noticias-modal-acciones">
+                <button type="button" class="frase-dia-quitar" id="frase-dia-modal-quitar">Quitar la actual</button>
+                <button type="button" class="pedido-modal-enviar" id="frase-dia-modal-guardar">Publicar (24 horas)</button>
+            </div>
+        </div>
+    </div>
+
+
     <div class="toast-carrito" id="toast-carrito">
         <span class="toast-check">✓</span>
         <span id="toast-carrito-texto">Agregado al carrito</span>
@@ -83,12 +114,13 @@
         <div class="header-content container">
 
             <div class="header-txt">
-                <h1><span>¡Bienvenida/o a El Alebrije,</span> tu café cultural!</h1>
-                <p>
+                <h1 id="hero-titulo"><span>¡Bienvenida/o a El Alebrije,</span> tu café cultural!</h1>
+                <p id="hero-parrafo">
                     Un rincón para desayunar rico, tomar el mejor café y disfrutar de la vibra, música
                     y buenas pláticas. Aquí cada taza cuenta una historia.
                 </p>
-                <a href="#nosotros" class="btn-1">Conócenos</a>
+                <a href="#nosotros" class="btn-1" id="hero-boton">Conócenos</a>
+                <button type="button" class="noticias-admin-btn solo-admin" id="inicio-admin-btn" hidden style="margin-top:14px;">✏️ Administrar Inicio</button>
             </div>
             <div class="header-img">
                 <img src="imagenes/comida1.png" alt="Platillo especial de la casa">
@@ -454,6 +486,7 @@
             <button class="menu-tab" data-target="desayunos">Desayunos</button>
             <button class="menu-tab" data-target="corrida">Comida Corrida</button>
             <button class="menu-tab" data-target="recetas">Recetas</button>
+            <button type="button" class="noticias-admin-btn solo-admin" id="recetas-admin-btn" hidden>✏️ Administrar recetas</button>
         </div>
 
         <div class="menu-panels">
@@ -1016,294 +1049,8 @@
                 </div>
             </div>
 
-            <!-- RECETAS -->
-            <!--
-                CÓMO AGREGAR UNA RECETA NUEVA:
-                Copia una tarjeta ".receta-card" completa y cambia la imagen, el nombre,
-                el "producto estelar" (ese ingrediente/insumo especial que la hace única) y
-                la lista de ingredientes. data-menu-tab / data-menu-item son opcionales: si
-                los pones, el botón "Pedir este platillo" lleva directo a ese platillo en el
-                menú (usa el mismo id que ya tenga esa tarjeta en Bebidas/Snacks/Desayunos/etc).
-            -->
             <div class="menu-panel" id="panel-recetas">
-                <div class="menu-category">
-                    <h4>Café</h4>
-                    <p class="menu-category-note">Recetas de café con un toque especial, para preparar en casa o pedir ya listas.</p>
-
-                    <div class="receta-grid">
-
-                        <article class="receta-card">
-                            <img src="imagenes/capuchino.png" alt="Capuchino">
-                            <div class="receta-card-body">
-                                <h5>Capuchino</h5>
-                                <span class="receta-estelar">⭐ Producto estelar: café de altura de Coatepec</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>Doble shot de espresso de grano recién molido</li>
-                                    <li>Leche entera vaporizada</li>
-                                    <li>Espuma cremosa con un toque de canela</li>
-                                </ul>
-                                <a href="#productos" class="receta-ver-menu" data-menu-tab="bebidas" data-menu-item="menu-item-capuchino-latte">Pedir este platillo →</a>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-canela-miel.png" alt="Café con Canela y Miel">
-                            <div class="receta-card-body">
-                                <h5>Café con Canela y Miel</h5>
-                                <span class="receta-estelar">⭐ Un clásico reconfortante con un toque dulce y especiado</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café caliente</li>
-                                    <li>½ cucharadita de canela en polvo</li>
-                                    <li>1 cucharada de miel</li>
-                                    <li>Leche al gusto (opcional)</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Prepara tu café en moka o prensa francesa.</li>
-                                    <li>Agrega la miel y la canela directamente en la taza.</li>
-                                    <li>Revuelve bien hasta disolver todo.</li>
-                                    <li>Añade leche caliente si lo deseas.</li>
-                                    <li>Decora con un poco de canela encima.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-arabe-cardamomo.png" alt="Café Árabe al Cardamomo">
-                            <div class="receta-card-body">
-                                <h5>Café Árabe al Cardamomo</h5>
-                                <span class="receta-estelar">⭐ Inspirado en la tradición del café árabe, aromático y especiado</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café negro</li>
-                                    <li>3 vainas de cardamomo machacadas</li>
-                                    <li>Azúcar al gusto</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Añade el cardamomo en el agua antes de preparar el café en la moka.</li>
-                                    <li>Prepara el café normalmente.</li>
-                                    <li>Sirve caliente y endulza al gusto.</li>
-                                    <li>Puedes colar si no quieres restos de cardamomo.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-especiado-invierno.png" alt="Café Especiado de Invierno">
-                            <div class="receta-card-body">
-                                <h5>Café Especiado de Invierno</h5>
-                                <span class="receta-estelar">⭐ Perfecto para los días fríos, con especias cálidas de temporada</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café</li>
-                                    <li>1 pizca de canela</li>
-                                    <li>1 pizca de nuez moscada</li>
-                                    <li>1 pizca de clavo en polvo</li>
-                                    <li>Leche espumada</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Mezcla todas las especias en un recipiente.</li>
-                                    <li>Agrégalas al café recién hecho.</li>
-                                    <li>Añade leche espumada encima.</li>
-                                    <li>Espolvorea con un toque extra de canela.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-anis-estrellado.png" alt="Café con Anís Estrellado">
-                            <div class="receta-card-body">
-                                <h5>Café con Anís Estrellado</h5>
-                                <span class="receta-estelar">⭐ Notas dulces y anisadas en cada sorbo</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café caliente</li>
-                                    <li>1 anís estrellado</li>
-                                    <li>1 cucharada de azúcar moreno</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Hierve el anís estrellado en un poco de agua por 2 minutos.</li>
-                                    <li>Usa esta infusión para preparar tu café.</li>
-                                    <li>Endulza con azúcar moreno y sirve caliente.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-jengibre-panela.png" alt="Café Jengibre y Panela">
-                            <div class="receta-card-body">
-                                <h5>Café Jengibre y Panela</h5>
-                                <span class="receta-estelar">⭐ Picante, dulce y con el sabor natural de la panela</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café</li>
-                                    <li>1 rodaja de jengibre fresco</li>
-                                    <li>1 cucharada de panela rallada</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Hierve el jengibre en agua por 3 minutos.</li>
-                                    <li>Usa esa agua para hacer el café en la moka o prensa.</li>
-                                    <li>Disuelve la panela y sirve caliente.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-naranja-canela.png" alt="Café Naranja y Canela">
-                            <div class="receta-card-body">
-                                <h5>Café Naranja y Canela</h5>
-                                <span class="receta-estelar">⭐ Cítrico y aromático, con un toque de canela</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café</li>
-                                    <li>Cáscara de naranja (sin la parte blanca)</li>
-                                    <li>½ cucharadita de canela</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Coloca la cáscara y la canela en el filtro de la moka o en la jarra de la prensa francesa.</li>
-                                    <li>Prepara el café normalmente.</li>
-                                    <li>Cuela si es necesario y sirve caliente.</li>
-                                    <li>Decora con un toque de cáscara fresca.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-chai-leche.png" alt="Café Chai con Leche">
-                            <div class="receta-card-body">
-                                <h5>Café Chai con Leche</h5>
-                                <span class="receta-estelar">⭐ La fusión perfecta entre café y especias chai</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>½ taza de café fuerte</li>
-                                    <li>½ taza de leche caliente</li>
-                                    <li>¼ cucharadita de mezcla de chai (canela, jengibre, clavo, cardamomo, pimienta negra)</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Mezcla las especias chai con la leche caliente.</li>
-                                    <li>Deja infusionar por 2 minutos.</li>
-                                    <li>Agrega el café y revuelve bien.</li>
-                                    <li>Sirve caliente.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-pimienta-miel.png" alt="Café con Pimienta Negra y Miel">
-                            <div class="receta-card-body">
-                                <h5>Café con Pimienta Negra y Miel</h5>
-                                <span class="receta-estelar">⭐ Un toque picante y dulce a la vez, ideal para sorprender</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café</li>
-                                    <li>1 pizca de pimienta negra molida</li>
-                                    <li>1 cucharada de miel</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Agrega la miel y la pimienta al café caliente.</li>
-                                    <li>Mezcla bien y sirve de inmediato.</li>
-                                    <li>Ideal para dar un toque picante y dulce.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                        <article class="receta-card">
-                            <img src="imagenes/cafe-clavo-nuez.png" alt="Café con Clavo de Olor y Nuez Moscada">
-                            <div class="receta-card-body">
-                                <h5>Café con Clavo de Olor y Nuez Moscada</h5>
-                                <span class="receta-estelar">⭐ Especiado y cálido, perfecto para después de comer</span>
-                                <p class="receta-ingredientes-label">Ingredientes:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 taza de café</li>
-                                    <li>1 pizca de clavo en polvo</li>
-                                    <li>1 pizca de nuez moscada</li>
-                                    <li>Leche caliente (opcional)</li>
-                                </ul>
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li>Mezcla las especias y agrégalas al café ya preparado.</li>
-                                    <li>Añade leche caliente si lo deseas.</li>
-                                    <li>Revuelve y decora con un poco más de nuez moscada.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                    </div>
-                </div>
-
-                <div class="menu-category">
-                    <h4>Otras recetas</h4>
-                    <p class="menu-category-note">Platillos con historia, preparados desde cero.</p>
-
-                    <div class="receta-grid">
-
-                        <article class="receta-card receta-card-grande">
-                            <img src="imagenes/pozole-negro.png" alt="Pozole Negro de Puerco con Chile Mulato y Chilhuacle Negro">
-                            <div class="receta-card-body">
-                                <h5>Pozole Negro de Puerco con Chile Mulato y Chilhuacle Negro</h5>
-                                <span class="receta-estelar">⭐ Como el de fonda oaxaqueña: salsa negra de chile mulato, chilhuacle negro y pasilla, frita en manteca</span>
-
-                                <p class="receta-ingredientes-label">Para el caldo:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>1 kg de espaldilla de puerco con hueso</li>
-                                    <li>500 g de codillo de puerco</li>
-                                    <li>4 litros de agua</li>
-                                    <li>1 cabeza de ajo entera</li>
-                                    <li>1 cebolla blanca partida a la mitad</li>
-                                    <li>Sal al gusto</li>
-                                </ul>
-
-                                <p class="receta-ingredientes-label">Para la salsa negra:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>6 chiles mulatos secos, desvenados</li>
-                                    <li>4 chiles chilhuacles negros secos, desvenados</li>
-                                    <li>2 chiles pasillas secos, desvenados</li>
-                                    <li>4 jitomates bola medianos</li>
-                                    <li>1/2 cebolla blanca</li>
-                                    <li>4 dientes de ajo</li>
-                                    <li>1 tortilla de maíz seca o tostada</li>
-                                    <li>2 cucharadas de manteca de puerco</li>
-                                    <li>1 cucharadita de orégano oaxaqueño seco</li>
-                                    <li>1/2 cucharadita de comino molido</li>
-                                </ul>
-
-                                <p class="receta-ingredientes-label">Para el maíz:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>800 g de maíz cacahuazintle precocido y lavado</li>
-                                </ul>
-
-                                <p class="receta-ingredientes-label">Para la guarnición:</p>
-                                <ul class="receta-ingredientes">
-                                    <li>Repollo o lechuga oaxaqueña finamente picada</li>
-                                    <li>Cebolla morada finamente picada</li>
-                                    <li>Orégano seco y chile seco molido</li>
-                                    <li>Limones partidos y rábanos rebanados</li>
-                                    <li>Tostadas y queso fresco desmoronado</li>
-                                </ul>
-
-                                <p class="receta-ingredientes-label">Preparación:</p>
-                                <ol class="receta-pasos">
-                                    <li><strong>Cocer la carne y el maíz.</strong> Pon la espaldilla y el codillo en una olla grande con 4 litros de agua fría, la cabeza de ajo, la cebolla y sal. Lleva a hervor fuerte, desespuma bien durante los primeros 10 minutos. Agrega el maíz cacahuazintle, baja el fuego y cuece a fuego medio 1 hora 45 minutos o hasta que el maíz reviente y la carne esté muy suave.</li>
-                                    <li><strong>Tostar y remojar los chiles.</strong> Pasa los chiles mulatos, chilhuacles negros y pasillas por un comal caliente sin aceite, 20 segundos por lado, hasta que perfumen pero sin quemarlos. Remójalos en agua caliente 20 minutos hasta que estén suaves. Escurre y reserva 1 taza del agua de remojo.</li>
-                                    <li><strong>Asar las verduras.</strong> En el mismo comal, asa los jitomates, la cebolla y los ajos a fuego alto hasta que tengan manchas oscuras por todos lados, unos 12 minutos. Asa también la tortilla hasta que quede negra y crujiente: esto le da el color oscuro característico al pozole.</li>
-                                    <li><strong>Licuar la salsa negra.</strong> Licúa los chiles escurridos con los jitomates asados, la cebolla, el ajo, la tortilla tostada negra, el orégano, el comino y el agua de remojo reservada hasta obtener una salsa muy tersa. Cuela.</li>
-                                    <li><strong>Freír y sazonar la salsa.</strong> Calienta la manteca en una olla mediana a fuego alto hasta que humee. Vierte la salsa colada de golpe y fríela 8 minutos revolviendo constantemente hasta que oscurezca aún más y espese. Sazona con sal.</li>
-                                    <li><strong>Armar el pozole.</strong> Saca la carne cocida, deshébrala gruesa y regresa al caldo. Vierte la salsa negra frita al caldo con el maíz reventado, mezcla bien y hierve 20 minutos a fuego medio para que todo se integre. Ajusta sal. El caldo debe quedar oscuro, casi negro, brillante y con cuerpo.</li>
-                                </ol>
-                            </div>
-                        </article>
-
-                    </div>
-                </div>
+                <div id="recetas-container"></div>
             </div>
 
         </div>
@@ -1374,6 +1121,49 @@
 
             <div class="noticias-modal-acciones">
                 <button type="button" class="pedido-modal-enviar" id="videos-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="noticias-modal" id="recetas-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="recetas-modal-close" aria-label="Cerrar">✕</button>
+            <h3>📖 Administrar recetas</h3>
+            <p class="noticias-modal-sub">
+                Agrega, edita o elimina recetas. En "Imagen" escribe el nombre de un archivo ya
+                subido en la carpeta imagenes (ej. capuchino.png) o un link completo a una imagen.
+                Ingredientes y Preparación: un renglón por cada uno. Al guardar se actualiza para
+                todos los visitantes.
+            </p>
+
+            <div class="noticias-modal-lista" id="recetas-modal-lista"></div>
+
+            <button type="button" class="noticias-modal-agregar" id="recetas-modal-agregar">+ Agregar receta</button>
+
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="recetas-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="noticias-modal" id="inicio-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="inicio-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🏠 Administrar Inicio</h3>
+            <p class="noticias-modal-sub">
+                Edita el título, el texto y el botón de la primera pantalla de tu sitio. Al guardar
+                se actualiza para todos los visitantes.
+            </p>
+            <div class="noticia-form">
+                <label>Título</label>
+                <input type="text" id="inicio-form-titulo" placeholder="¡Bienvenida/o a...!">
+                <label style="margin-top:10px">Texto debajo del título</label>
+                <textarea id="inicio-form-parrafo" placeholder="Un rincón para..."></textarea>
+                <label style="margin-top:10px">Texto del botón</label>
+                <input type="text" id="inicio-form-boton-texto" placeholder="Conócenos">
+            </div>
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="inicio-modal-guardar">Guardar cambios (para todos)</button>
             </div>
         </div>
     </div>

@@ -45,7 +45,7 @@ const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
 const API_BASE_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api';
 
 let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null };
+let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null };
 
 function mostrarBotonesAdmin(mostrar){
     document.querySelectorAll('.solo-admin').forEach((el) => {
@@ -624,6 +624,9 @@ function pintarPodcast(){
         const art = document.createElement('article');
         art.className = 'podcast-card';
         art.style.setProperty('--accent', ep.color || '#ff9000');
+        const reproductor = ep.youtubeId
+            ? `<div class="podcast-yt-embed" style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin-top:8px;"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ep.youtubeId}" title="${ep.titulo || 'Episodio'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:0;"></iframe></div>`
+            : `<audio controls ${ep.audio ? `src="${ep.audio}"` : ''}></audio>`;
         art.innerHTML = `
             <div class="podcast-card-top">
                 <span class="podcast-num">${ep.numero || ''}</span>
@@ -631,7 +634,7 @@ function pintarPodcast(){
             </div>
             <h3>${ep.titulo || ''}</h3>
             <p>${ep.descripcion || ''}</p>
-            <audio controls ${ep.audio ? `src="${ep.audio}"` : ''}></audio>
+            ${reproductor}
         `;
         grid.appendChild(art);
     });
@@ -662,8 +665,10 @@ function renderFormularioPodcast(){
             <input type="text" placeholder="Título del episodio" value="${ep.titulo || ''}" data-campo="titulo" data-i="${i}">
             <label style="margin-top:10px">Descripción</label>
             <textarea data-campo="descripcion" data-i="${i}">${ep.descripcion || ''}</textarea>
-            <label style="margin-top:10px">Link del audio (opcional)</label>
+            <label style="margin-top:10px">Link del audio (opcional, si NO usas YouTube)</label>
             <input type="text" placeholder="https://..." value="${ep.audio || ''}" data-campo="audio" data-i="${i}">
+            <label style="margin-top:10px">ID de YouTube (opcional, si el episodio tiene video en su canal)</label>
+            <input type="text" placeholder="Ej. dQw4w9WgXcQ" value="${ep.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
             <div style="margin-top:10px; text-align:right;">
                 <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este episodio</button>
             </div>
@@ -1688,11 +1693,133 @@ function inyectarBotonesEdicionMenu(){
 }
 
 // Cuando llega el contenido del servidor: aplica noticias, promos y menú.
+// =====================================================================
+// FRASE / IMAGEN DEL DÍA (banner temporal, dura 24 horas exactas)
+// =====================================================================
+const fraseDiaBanner = document.getElementById('frase-dia-banner');
+const fraseDiaImg = document.getElementById('frase-dia-img');
+const fraseDiaCerrar = document.getElementById('frase-dia-cerrar');
+const fraseDiaAdminBtn = document.getElementById('frase-dia-admin-btn');
+const fraseDiaModal = document.getElementById('frase-dia-modal');
+const fraseDiaModalClose = document.getElementById('frase-dia-modal-close');
+const fraseDiaFormArchivo = document.getElementById('frase-dia-form-archivo');
+const fraseDiaFormPreview = document.getElementById('frase-dia-form-preview');
+const fraseDiaFormPreviewWrap = document.getElementById('frase-dia-form-preview-wrap');
+const fraseDiaModalGuardar = document.getElementById('frase-dia-modal-guardar');
+const fraseDiaModalQuitar = document.getElementById('frase-dia-modal-quitar');
+let fraseDiaBase64Nueva = '';
+
+async function cargarFraseDelDia(){
+    try {
+        const resp = await fetch(`${API_BASE_URL}/frase-dia`);
+        if (!resp.ok) return;
+        const datos = await resp.json();
+        if (datos.imagen && !sessionStorage.getItem('elalebrije-frase-dia-cerrada')) {
+            fraseDiaImg.src = datos.imagen;
+            fraseDiaBanner.hidden = false;
+        }
+    } catch (err) {
+        console.warn('No se pudo cargar la frase del día:', err);
+    }
+}
+cargarFraseDelDia();
+
+if (fraseDiaCerrar) {
+    fraseDiaCerrar.addEventListener('click', () => {
+        fraseDiaBanner.hidden = true;
+        sessionStorage.setItem('elalebrije-frase-dia-cerrada', 'true');
+    });
+}
+
+if (fraseDiaAdminBtn) {
+    fraseDiaAdminBtn.addEventListener('click', () => {
+        fraseDiaBase64Nueva = '';
+        if (fraseDiaFormArchivo) fraseDiaFormArchivo.value = '';
+        if (fraseDiaFormPreviewWrap) fraseDiaFormPreviewWrap.hidden = true;
+        fraseDiaModal.classList.add('open');
+    });
+}
+if (fraseDiaModalClose) fraseDiaModalClose.addEventListener('click', () => fraseDiaModal.classList.remove('open'));
+if (fraseDiaModal) fraseDiaModal.addEventListener('click', (e) => { if (e.target === fraseDiaModal) fraseDiaModal.classList.remove('open'); });
+
+if (fraseDiaFormArchivo) {
+    fraseDiaFormArchivo.addEventListener('change', () => {
+        const archivo = fraseDiaFormArchivo.files[0];
+        if (!archivo) return;
+        const lector = new FileReader();
+        lector.onload = () => {
+            fraseDiaBase64Nueva = lector.result;
+            fraseDiaFormPreview.src = fraseDiaBase64Nueva;
+            fraseDiaFormPreviewWrap.hidden = false;
+        };
+        lector.readAsDataURL(archivo);
+    });
+}
+
+async function llamarFraseDiaAPI(metodo, body){
+    let clave = obtenerClaveAdmin();
+    if (!clave) {
+        clave = window.prompt('Contraseña del panel:') || '';
+        if (!clave) return null;
+    }
+    try {
+        const resp = await fetch(`${API_BASE_URL}/frase-dia`, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...body, password: clave })
+        });
+        if (resp.status === 401) {
+            alert('Contraseña incorrecta.');
+            sessionStorage.removeItem('elalebrije-admin-clave');
+            return null;
+        }
+        if (!resp.ok) throw new Error('Respuesta no válida');
+        sessionStorage.setItem('elalebrije-admin-clave', clave);
+        return true;
+    } catch (err) {
+        console.error('Error en frase del día:', err);
+        alert('No se pudo conectar. Revisa tu internet e intenta de nuevo.');
+        return null;
+    }
+}
+
+if (fraseDiaModalGuardar) {
+    fraseDiaModalGuardar.addEventListener('click', async () => {
+        if (!fraseDiaBase64Nueva) {
+            alert('Primero elige una imagen.');
+            return;
+        }
+        fraseDiaModalGuardar.disabled = true;
+        const ok = await llamarFraseDiaAPI('POST', { imagen: fraseDiaBase64Nueva });
+        fraseDiaModalGuardar.disabled = false;
+        if (!ok) return;
+        fraseDiaImg.src = fraseDiaBase64Nueva;
+        fraseDiaBanner.hidden = false;
+        sessionStorage.removeItem('elalebrije-frase-dia-cerrada');
+        fraseDiaModal.classList.remove('open');
+        alert('Publicada: se verá para todos durante las próximas 24 horas, y después desaparece sola.');
+    });
+}
+
+if (fraseDiaModalQuitar) {
+    fraseDiaModalQuitar.addEventListener('click', async () => {
+        if (!confirm('¿Quitar la imagen actual para todos los visitantes?')) return;
+        fraseDiaModalQuitar.disabled = true;
+        const ok = await llamarFraseDiaAPI('DELETE', {});
+        fraseDiaModalQuitar.disabled = false;
+        if (!ok) return;
+        fraseDiaBanner.hidden = true;
+        fraseDiaModal.classList.remove('open');
+    });
+}
+
 cargaContenidoServidor.then(() => {
     pintarNoticias();
     pintarPromociones2();
     pintarPodcast();
     pintarVideos();
+    pintarRecetas();
+    aplicarOverridesInicio();
     aplicarOverridesMenu();
     inyectarBotonesEdicionMenu();
     if (modoAdmin) mostrarBotonesAdmin(true);
@@ -1703,4 +1830,211 @@ intentarActivarPanelSecreto();
 if (modoAdmin) {
     mostrarBotonesAdmin(true);
     inyectarBotonesEdicionMenu();
+}
+
+// =====================================================================
+// RECETAS
+// =====================================================================
+// Lista plana de recetas (con su categoría) que se muestra por defecto.
+const RECETAS = [
+    { categoria: 'Café', imagen: 'imagenes/capuchino.png', titulo: 'Capuchino', estelar: '⭐ Producto estelar: café de altura de Coatepec', ingredientes: ['Doble shot de espresso de grano recién molido', 'Leche entera vaporizada', 'Espuma cremosa con un toque de canela'], pasos: [] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-canela-miel.png', titulo: 'Café con Canela y Miel', estelar: '⭐ Un clásico reconfortante con un toque dulce y especiado', ingredientes: ['1 taza de café caliente', '½ cucharadita de canela en polvo', '1 cucharada de miel', 'Leche al gusto (opcional)'], pasos: ['Prepara tu café en moka o prensa francesa.', 'Agrega la miel y la canela directamente en la taza.', 'Revuelve bien hasta disolver todo.', 'Añade leche caliente si lo deseas.', 'Decora con un poco de canela encima.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-arabe-cardamomo.png', titulo: 'Café Árabe al Cardamomo', estelar: '⭐ Inspirado en la tradición del café árabe, aromático y especiado', ingredientes: ['1 taza de café negro', '3 vainas de cardamomo machacadas', 'Azúcar al gusto'], pasos: ['Añade el cardamomo en el agua antes de preparar el café en la moka.', 'Prepara el café normalmente.', 'Sirve caliente y endulza al gusto.', 'Puedes colar si no quieres restos de cardamomo.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-especiado-invierno.png', titulo: 'Café Especiado de Invierno', estelar: '⭐ Perfecto para los días fríos, con especias cálidas de temporada', ingredientes: ['1 taza de café', '1 pizca de canela', '1 pizca de nuez moscada', '1 pizca de clavo en polvo', 'Leche espumada'], pasos: ['Mezcla todas las especias en un recipiente.', 'Agrégalas al café recién hecho.', 'Añade leche espumada encima.', 'Espolvorea con un toque extra de canela.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-anis-estrellado.png', titulo: 'Café con Anís Estrellado', estelar: '⭐ Notas dulces y anisadas en cada sorbo', ingredientes: ['1 taza de café caliente', '1 anís estrellado', '1 cucharada de azúcar moreno'], pasos: ['Hierve el anís estrellado en un poco de agua por 2 minutos.', 'Usa esta infusión para preparar tu café.', 'Endulza con azúcar moreno y sirve caliente.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-jengibre-panela.png', titulo: 'Café Jengibre y Panela', estelar: '⭐ Picante, dulce y con el sabor natural de la panela', ingredientes: ['1 taza de café', '1 rodaja de jengibre fresco', '1 cucharada de panela rallada'], pasos: ['Hierve el jengibre en agua por 3 minutos.', 'Usa esa agua para hacer el café en la moka o prensa.', 'Disuelve la panela y sirve caliente.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-naranja-canela.png', titulo: 'Café Naranja y Canela', estelar: '⭐ Cítrico y aromático, con un toque de canela', ingredientes: ['1 taza de café', 'Cáscara de naranja (sin la parte blanca)', '½ cucharadita de canela'], pasos: ['Coloca la cáscara y la canela en el filtro de la moka o en la jarra de la prensa francesa.', 'Prepara el café normalmente.', 'Cuela si es necesario y sirve caliente.', 'Decora con un toque de cáscara fresca.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-chai-leche.png', titulo: 'Café Chai con Leche', estelar: '⭐ La fusión perfecta entre café y especias chai', ingredientes: ['½ taza de café fuerte', '½ taza de leche caliente', '¼ cucharadita de mezcla de chai (canela, jengibre, clavo, cardamomo, pimienta negra)'], pasos: ['Mezcla las especias chai con la leche caliente.', 'Deja infusionar por 2 minutos.', 'Agrega el café y revuelve bien.', 'Sirve caliente.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-pimienta-miel.png', titulo: 'Café con Pimienta Negra y Miel', estelar: '⭐ Un toque picante y dulce a la vez, ideal para sorprender', ingredientes: ['1 taza de café', '1 pizca de pimienta negra molida', '1 cucharada de miel'], pasos: ['Agrega la miel y la pimienta al café caliente.', 'Mezcla bien y sirve de inmediato.', 'Ideal para dar un toque picante y dulce.'] },
+    { categoria: 'Café', imagen: 'imagenes/cafe-clavo-nuez.png', titulo: 'Café con Clavo de Olor y Nuez Moscada', estelar: '⭐ Especiado y cálido, perfecto para después de comer', ingredientes: ['1 taza de café', '1 pizca de clavo en polvo', '1 pizca de nuez moscada', 'Leche caliente (opcional)'], pasos: ['Mezcla las especias y agrégalas al café ya preparado.', 'Añade leche caliente si lo deseas.', 'Revuelve y decora con un poco más de nuez moscada.'] },
+    { categoria: 'Otras recetas', imagen: 'imagenes/pozole-negro.png', titulo: 'Pozole Negro de Puerco con Chile Mulato y Chilhuacle Negro', estelar: '⭐ Como el de fonda oaxaqueña: salsa negra de chile mulato, chilhuacle negro y pasilla, frita en manteca', ingredientes: ['Para el caldo: 1 kg de espaldilla de puerco con hueso', 'Para el caldo: 500 g de codillo de puerco', 'Para el caldo: 4 litros de agua, 1 cabeza de ajo, 1 cebolla blanca, sal', 'Para la salsa negra: 6 chiles mulatos, 4 chilhuacles negros, 2 pasillas (secos, desvenados)', 'Para la salsa negra: 4 jitomates, 1/2 cebolla, 4 dientes de ajo, 1 tortilla tostada', 'Para la salsa negra: 2 cdas de manteca de puerco, orégano oaxaqueño, comino', 'Para el maíz: 800 g de maíz cacahuazintle precocido', 'Guarnición: repollo, cebolla morada, orégano, chile seco, limón, rábano, tostadas, queso fresco'], pasos: ['Cuece la carne y el maíz en agua con ajo, cebolla y sal (1h 45min aprox).', 'Tuesta y remoja los chiles 20 min; reserva agua de remojo.', 'Asa jitomates, cebolla, ajo y tortilla hasta oscurecer.', 'Licúa chiles, verduras asadas y tortilla con el agua de remojo; cuela.', 'Fríe la salsa en manteca caliente 8 min hasta que espese y oscurezca.', 'Deshebra la carne, regrésala al caldo con la salsa y el maíz; hierve 20 min más.'] }
+];
+
+function obtenerRecetasActuales(){
+    return contenidoServidor.recetas || RECETAS;
+}
+
+function pintarRecetas(){
+    const cont = document.getElementById('recetas-container');
+    if (!cont) return;
+    const recetas = obtenerRecetasActuales();
+    const porCategoria = {};
+    recetas.forEach((r) => {
+        const cat = r.categoria || 'Recetas';
+        if (!porCategoria[cat]) porCategoria[cat] = [];
+        porCategoria[cat].push(r);
+    });
+
+    cont.innerHTML = '';
+    Object.keys(porCategoria).forEach((cat) => {
+        const catDiv = document.createElement('div');
+        catDiv.className = 'menu-category';
+        const grid = document.createElement('div');
+        grid.className = 'receta-grid';
+        porCategoria[cat].forEach((r) => {
+            const art = document.createElement('article');
+            art.className = 'receta-card';
+            const ingredientesHtml = (r.ingredientes || []).map((i) => `<li>${i}</li>`).join('');
+            const pasosHtml = (r.pasos && r.pasos.length)
+                ? `<p class="receta-ingredientes-label">Preparación:</p><ol class="receta-pasos">${r.pasos.map((p) => `<li>${p}</li>`).join('')}</ol>`
+                : '';
+            art.innerHTML = `
+                <img src="${r.imagen || ''}" alt="${r.titulo || ''}">
+                <div class="receta-card-body">
+                    <h5>${r.titulo || ''}</h5>
+                    <span class="receta-estelar">${r.estelar || ''}</span>
+                    <p class="receta-ingredientes-label">Ingredientes:</p>
+                    <ul class="receta-ingredientes">${ingredientesHtml}</ul>
+                    ${pasosHtml}
+                </div>
+            `;
+            grid.appendChild(art);
+        });
+        catDiv.innerHTML = `<h4>${cat}</h4>`;
+        catDiv.appendChild(grid);
+        cont.appendChild(catDiv);
+    });
+}
+pintarRecetas();
+
+// Panel de administración de Recetas
+const recetasAdminBtn = document.getElementById('recetas-admin-btn');
+const recetasModal = document.getElementById('recetas-modal');
+const recetasModalClose = document.getElementById('recetas-modal-close');
+const recetasModalLista = document.getElementById('recetas-modal-lista');
+const recetasModalAgregar = document.getElementById('recetas-modal-agregar');
+const recetasModalGuardar = document.getElementById('recetas-modal-guardar');
+let recetasFormulario = [];
+
+function renderFormularioRecetas(){
+    if (!recetasModalLista) return;
+    recetasModalLista.innerHTML = '';
+    recetasFormulario.forEach((r, i) => {
+        const fila = document.createElement('div');
+        fila.className = 'noticia-form';
+        fila.innerHTML = `
+            <div class="noticia-form-row">
+                <div style="flex:1"><label>Categoría</label><input type="text" placeholder="Ej. Café" value="${r.categoria || ''}" data-campo="categoria" data-i="${i}"></div>
+                <div style="flex:1"><label>Imagen</label><input type="text" placeholder="imagenes/foto.png" value="${r.imagen || ''}" data-campo="imagen" data-i="${i}"></div>
+            </div>
+            <label>Título</label>
+            <input type="text" placeholder="Nombre de la receta" value="${r.titulo || ''}" data-campo="titulo" data-i="${i}">
+            <label style="margin-top:10px">Frase destacada (⭐)</label>
+            <input type="text" placeholder="⭐ Lo que la hace especial" value="${r.estelar || ''}" data-campo="estelar" data-i="${i}">
+            <label style="margin-top:10px">Ingredientes (uno por renglón)</label>
+            <textarea data-campo="ingredientes" data-i="${i}">${(r.ingredientes || []).join('\n')}</textarea>
+            <label style="margin-top:10px">Preparación (opcional, un paso por renglón)</label>
+            <textarea data-campo="pasos" data-i="${i}">${(r.pasos || []).join('\n')}</textarea>
+            <div style="margin-top:10px; text-align:right;">
+                <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar esta receta</button>
+            </div>
+        `;
+        recetasModalLista.appendChild(fila);
+    });
+    recetasModalLista.querySelectorAll('input, textarea').forEach((input) => {
+        input.addEventListener('input', () => {
+            const i = Number(input.getAttribute('data-i'));
+            const campo = input.getAttribute('data-campo');
+            if (campo === 'ingredientes' || campo === 'pasos') {
+                recetasFormulario[i][campo] = input.value.split('\n').map((s) => s.trim()).filter(Boolean);
+            } else {
+                recetasFormulario[i][campo] = input.value;
+            }
+        });
+    });
+    recetasModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const i = Number(btn.getAttribute('data-i'));
+            recetasFormulario.splice(i, 1);
+            renderFormularioRecetas();
+        });
+    });
+}
+
+if (recetasAdminBtn) {
+    recetasAdminBtn.addEventListener('click', () => {
+        recetasFormulario = JSON.parse(JSON.stringify(obtenerRecetasActuales()));
+        renderFormularioRecetas();
+        recetasModal.classList.add('open');
+    });
+}
+if (recetasModalClose) recetasModalClose.addEventListener('click', () => recetasModal.classList.remove('open'));
+if (recetasModal) recetasModal.addEventListener('click', (e) => { if (e.target === recetasModal) recetasModal.classList.remove('open'); });
+if (recetasModalAgregar) {
+    recetasModalAgregar.addEventListener('click', () => {
+        recetasFormulario.push({ categoria: '', imagen: '', titulo: '', estelar: '', ingredientes: [], pasos: [] });
+        renderFormularioRecetas();
+    });
+}
+if (recetasModalGuardar) {
+    recetasModalGuardar.addEventListener('click', async () => {
+        recetasModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('recetas', recetasFormulario);
+        recetasModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.recetas = recetasFormulario;
+        pintarRecetas();
+        recetasModal.classList.remove('open');
+        alert('Recetas actualizadas: ya se ven así para todos los visitantes.');
+    });
+}
+
+// =====================================================================
+// INICIO (hero)
+// =====================================================================
+const INICIO_DEFAULT = {
+    titulo: '¡Bienvenida/o a El Alebrije, tu café cultural!',
+    parrafo: 'Un rincón para desayunar rico, tomar el mejor café y disfrutar de la vibra, música y buenas pláticas. Aquí cada taza cuenta una historia.',
+    botonTexto: 'Conócenos'
+};
+
+function obtenerInicioActual(){
+    return contenidoServidor.inicio || INICIO_DEFAULT;
+}
+
+function aplicarOverridesInicio(){
+    const datos = obtenerInicioActual();
+    const tituloEl = document.getElementById('hero-titulo');
+    const parrafoEl = document.getElementById('hero-parrafo');
+    const botonEl = document.getElementById('hero-boton');
+    if (tituloEl && datos.titulo) tituloEl.textContent = datos.titulo;
+    if (parrafoEl && datos.parrafo) parrafoEl.textContent = datos.parrafo;
+    if (botonEl && datos.botonTexto) botonEl.textContent = datos.botonTexto;
+}
+
+const inicioAdminBtn = document.getElementById('inicio-admin-btn');
+const inicioModal = document.getElementById('inicio-modal');
+const inicioModalClose = document.getElementById('inicio-modal-close');
+const inicioModalGuardar = document.getElementById('inicio-modal-guardar');
+const inicioFormTitulo = document.getElementById('inicio-form-titulo');
+const inicioFormParrafo = document.getElementById('inicio-form-parrafo');
+const inicioFormBotonTexto = document.getElementById('inicio-form-boton-texto');
+
+if (inicioAdminBtn) {
+    inicioAdminBtn.addEventListener('click', () => {
+        const datos = obtenerInicioActual();
+        if (inicioFormTitulo) inicioFormTitulo.value = datos.titulo || '';
+        if (inicioFormParrafo) inicioFormParrafo.value = datos.parrafo || '';
+        if (inicioFormBotonTexto) inicioFormBotonTexto.value = datos.botonTexto || '';
+        inicioModal.classList.add('open');
+    });
+}
+if (inicioModalClose) inicioModalClose.addEventListener('click', () => inicioModal.classList.remove('open'));
+if (inicioModal) inicioModal.addEventListener('click', (e) => { if (e.target === inicioModal) inicioModal.classList.remove('open'); });
+if (inicioModalGuardar) {
+    inicioModalGuardar.addEventListener('click', async () => {
+        const nuevo = {
+            titulo: inicioFormTitulo ? inicioFormTitulo.value.trim() : '',
+            parrafo: inicioFormParrafo ? inicioFormParrafo.value.trim() : '',
+            botonTexto: inicioFormBotonTexto ? inicioFormBotonTexto.value.trim() : ''
+        };
+        inicioModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('inicio', nuevo);
+        inicioModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.inicio = nuevo;
+        aplicarOverridesInicio();
+        inicioModal.classList.remove('open');
+        alert('Inicio actualizado: ya se ve así para todos los visitantes.');
+    });
 }

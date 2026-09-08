@@ -2628,3 +2628,43 @@ body.dark-mode .transferencia-nota {
 }
 
 /* Footer y promo ya son oscuros/con color de marca; se mantienen igual */
+
+/* ---- Frase del día (banner temporal, 24h) ---- */
+.frase-dia-banner {
+    position: relative;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    text-align: center;
+    background: #111;
+}
+.frase-dia-banner img {
+    max-width: 100%;
+    max-height: 80vh;
+    display: inline-block;
+    margin: 0 auto;
+}
+.frase-dia-cerrar {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 2;
+}
+.frase-dia-quitar {
+    background: transparent;
+    border: 2px solid #d33;
+    color: #d33;
+    border-radius: 30px;
+    padding: 9px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: auto;
+}
