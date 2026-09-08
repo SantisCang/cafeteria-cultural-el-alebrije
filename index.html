@@ -1319,58 +1319,31 @@
                 Charlas sobre café, arte popular y los vecinos que le dan vida al barrio. Nuevo episodio cada
                 quincena — dale play mientras te tomas tu café.
             </p>
+            <button type="button" class="noticias-admin-btn solo-admin" id="podcast-admin-btn" hidden>✏️ Administrar podcast</button>
         </div>
 
-        <!--
-            Para conectar el audio real de cada episodio, agrega la ruta del archivo
-            al atributo src de la etiqueta <audio>, por ejemplo:
-            <audio controls src="podcast/episodio-01.mp3"></audio>
-            También puedes pegar un iframe de Spotify/Apple Podcasts en vez del <audio>.
-        -->
-        <div class="podcast-grid">
-
-            <article class="podcast-card" style="--accent:#e6007e">
-                <div class="podcast-card-top">
-                    <span class="podcast-num">Ep. 01</span>
-                    <span class="podcast-dur">24 min</span>
-                </div>
-                <h3>El origen de los alebrijes</h3>
-                <p>De dónde viene el nombre del café y la leyenda detrás de estas criaturas de colores.</p>
-                <audio controls></audio>
-            </article>
-
-            <article class="podcast-card" style="--accent:#00b3a4">
-                <div class="podcast-card-top">
-                    <span class="podcast-num">Ep. 02</span>
-                    <span class="podcast-dur">31 min</span>
-                </div>
-                <h3>De la milpa a la taza</h3>
-                <p>Platicamos con productores de café de altura sobre el camino del grano hasta tu mesa.</p>
-                <audio controls></audio>
-            </article>
-
-            <article class="podcast-card" style="--accent:#1f6fd6">
-                <div class="podcast-card-top">
-                    <span class="podcast-num">Ep. 03</span>
-                    <span class="podcast-dur">27 min</span>
-                </div>
-                <h3>Voces del barrio</h3>
-                <p>Artesanos y vecinos que exponen su trabajo en nuestras paredes cuentan su historia.</p>
-                <audio controls></audio>
-            </article>
-
-            <article class="podcast-card" style="--accent:#ff9000">
-                <div class="podcast-card-top">
-                    <span class="podcast-num">Ep. 04</span>
-                    <span class="podcast-dur">22 min</span>
-                </div>
-                <h3>Crónicas del foro</h3>
-                <p>Lo que pasa detrás de cámaras en nuestras noches de música en vivo.</p>
-                <audio controls></audio>
-            </article>
-
-        </div>
+        <div class="podcast-grid" id="podcast-grid"></div>
+        <p class="noticias-vacio" id="podcast-vacio" hidden>Por ahora no hay episodios publicados.</p>
     </section>
+
+    <div class="noticias-modal" id="podcast-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="podcast-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🎙️ Administrar podcast</h3>
+            <p class="noticias-modal-sub">
+                Agrega, edita o elimina episodios. Al darle a "Guardar cambios" se actualiza de
+                inmediato para todos los visitantes del sitio.
+            </p>
+
+            <div class="noticias-modal-lista" id="podcast-modal-lista"></div>
+
+            <button type="button" class="noticias-modal-agregar" id="podcast-modal-agregar">+ Agregar episodio</button>
+
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="podcast-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
 
 
     <section class="videos container" id="videos">
@@ -1378,37 +1351,32 @@
             <span class="eyebrow">Video</span>
             <h2>Momentos en El Alebrije</h2>
             <p>Un vistazo a lo que se vive aquí: cocina, arte y música. Da clic para reproducir.</p>
+            <button type="button" class="noticias-admin-btn solo-admin" id="videos-admin-btn" hidden>✏️ Administrar videos</button>
         </div>
 
-        <!--
-            Para conectar cada video, cambia el atributo data-video por el ID de YouTube
-            (lo que va después de "v=" en la URL) o por la ruta de un archivo local, por ejemplo:
-            data-video="dQw4w9WgXcQ"  ->  se incrusta https://www.youtube.com/embed/dQw4w9WgXcQ
-        -->
-        <div class="video-grid">
-
-            <button class="video-card" style="--accent:#e6007e" data-video="" data-title="Un día en El Alebrije">
-                <span class="video-play">▶</span>
-                <span class="video-label">Un día en El Alebrije</span>
-            </button>
-
-            <button class="video-card" style="--accent:#00b3a4" data-video="" data-title="Ritual del café de olla">
-                <span class="video-play">▶</span>
-                <span class="video-label">Ritual del café de olla</span>
-            </button>
-
-            <button class="video-card" style="--accent:#1f6fd6" data-video="" data-title="Pintando alebrijes">
-                <span class="video-play">▶</span>
-                <span class="video-label">Pintando alebrijes</span>
-            </button>
-
-            <button class="video-card" style="--accent:#ff9000" data-video="" data-title="Noche de jazz en el patio">
-                <span class="video-play">▶</span>
-                <span class="video-label">Noche de jazz en el patio</span>
-            </button>
-
-        </div>
+        <div class="video-grid" id="video-grid"></div>
+        <p class="noticias-vacio" id="videos-vacio" hidden>Por ahora no hay videos publicados.</p>
     </section>
+
+    <div class="noticias-modal" id="videos-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="videos-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🎬 Administrar videos</h3>
+            <p class="noticias-modal-sub">
+                Agrega, edita o elimina videos. El "ID de YouTube" es lo que va después de
+                "v=" en el link del video (ej. en youtube.com/watch?v=<b>dQw4w9WgXcQ</b>, el ID es
+                dQw4w9WgXcQ). Al guardar se actualiza para todos los visitantes.
+            </p>
+
+            <div class="noticias-modal-lista" id="videos-modal-lista"></div>
+
+            <button type="button" class="noticias-modal-agregar" id="videos-modal-agregar">+ Agregar video</button>
+
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="videos-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
 
     <div class="pedido-modal" id="pedido-modal">
         <div class="pedido-modal-inner">
