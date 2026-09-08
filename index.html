@@ -1165,6 +1165,30 @@
         </div>
     </div>
 
+    <div class="noticias-modal" id="info-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="info-modal-close" aria-label="Cerrar">✕</button>
+            <h3>📍 Administrar información</h3>
+            <p class="noticias-modal-sub">
+                Edita el horario, teléfono, correo y el link de "Cómo llegar" de la sección
+                Ubicación. Al guardar se actualiza para todos los visitantes.
+            </p>
+            <div class="noticia-form">
+                <label>Horario</label>
+                <input type="text" id="info-form-horario" placeholder="Lunes a Viernes · 10:00 AM – 20:00 PM">
+                <label style="margin-top:10px">Teléfono</label>
+                <input type="text" id="info-form-telefono" placeholder="(55) 1822 1646">
+                <label style="margin-top:10px">Correo</label>
+                <input type="text" id="info-form-correo" placeholder="hola@elalebrije.cafe">
+                <label style="margin-top:10px">Link de "Cómo llegar" (Google Maps)</label>
+                <input type="text" id="info-form-mapa" placeholder="https://maps.app.goo.gl/...">
+            </div>
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="info-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
+
     <div class="pedido-modal" id="pedido-modal">
         <div class="pedido-modal-inner">
             <button class="pedido-modal-close" id="pedido-modal-close" aria-label="Cerrar">✕</button>
@@ -1265,12 +1289,13 @@
             </p>
 
             <ul class="info-list">
-                <li><strong>Horario:</strong> Lunes a Viernes · 10:00 AM – 20:00 PM</li>
-                <li><strong>Teléfono:</strong> (55) 1822 1646</li>
-                <li><strong>Correo:</strong> hola@elalebrije.cafe</li>
+                <li><strong>Horario:</strong> <span id="info-horario">Lunes a Viernes · 10:00 AM – 20:00 PM</span></li>
+                <li><strong>Teléfono:</strong> <span id="info-telefono">(55) 1822 1646</span></li>
+                <li><strong>Correo:</strong> <span id="info-correo">hola@elalebrije.cafe</span></li>
             </ul>
 
-            <a href="https://maps.app.goo.gl/AVwMh6oQaQCv3z8z7" target="_blank" rel="noopener" class="btn-1">Cómo llegar</a>
+            <a href="https://maps.app.goo.gl/AVwMh6oQaQCv3z8z7" target="_blank" rel="noopener" class="btn-1" id="info-mapa-link">Cómo llegar</a>
+            <button type="button" class="noticias-admin-btn solo-admin" id="info-admin-btn" hidden style="margin-top:14px;">✏️ Administrar información</button>
         </div>
         <div class="maps-img">
             <iframe

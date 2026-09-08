@@ -45,7 +45,7 @@ const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
 const API_BASE_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api';
 
 let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null };
+let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null };
 
 function mostrarBotonesAdmin(mostrar){
     document.querySelectorAll('.solo-admin').forEach((el) => {
@@ -665,10 +665,11 @@ function renderFormularioPodcast(){
             <input type="text" placeholder="Título del episodio" value="${ep.titulo || ''}" data-campo="titulo" data-i="${i}">
             <label style="margin-top:10px">Descripción</label>
             <textarea data-campo="descripcion" data-i="${i}">${ep.descripcion || ''}</textarea>
-            <label style="margin-top:10px">Link del audio (opcional, si NO usas YouTube)</label>
-            <input type="text" placeholder="https://..." value="${ep.audio || ''}" data-campo="audio" data-i="${i}">
-            <label style="margin-top:10px">ID de YouTube (opcional, si el episodio tiene video en su canal)</label>
-            <input type="text" placeholder="Ej. dQw4w9WgXcQ" value="${ep.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
+            <label style="margin-top:10px">Subir archivo de audio (opcional, si NO usas YouTube)</label>
+            <input type="file" accept="audio/*" data-campo-archivo="audio" data-i="${i}">
+            ${ep.audio && ep.audio.startsWith('data:') ? `<p style="font-size:12px; color:#2a9d4a; margin-top:4px;">✓ Audio adjuntado</p>` : ''}
+            <label style="margin-top:10px">Link de YouTube (opcional, pega el link completo si el episodio tiene video)</label>
+            <input type="text" placeholder="https://www.youtube.com/watch?v=..." value="${ep.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
             <div style="margin-top:10px; text-align:right;">
                 <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este episodio</button>
             </div>
@@ -676,10 +677,26 @@ function renderFormularioPodcast(){
         podcastModalLista.appendChild(fila);
     });
     podcastModalLista.querySelectorAll('input, textarea').forEach((input) => {
-        input.addEventListener('input', () => {
+        const campo = input.getAttribute('data-campo');
+        if (!campo) return;
+        const esYoutube = campo === 'youtubeId';
+        input.addEventListener(esYoutube ? 'change' : 'input', () => {
             const i = Number(input.getAttribute('data-i'));
-            const campo = input.getAttribute('data-campo');
-            podcastFormulario[i][campo] = input.value;
+            podcastFormulario[i][campo] = esYoutube ? extraerYoutubeId(input.value) : input.value;
+        });
+    });
+    podcastModalLista.querySelectorAll('input[type="file"][data-campo-archivo]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const archivo = input.files[0];
+            if (!archivo) return;
+            const i = Number(input.getAttribute('data-i'));
+            const campo = input.getAttribute('data-campo-archivo');
+            const lector = new FileReader();
+            lector.onload = () => {
+                podcastFormulario[i][campo] = lector.result;
+                renderFormularioPodcast();
+            };
+            lector.readAsDataURL(archivo);
         });
     });
     podcastModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
@@ -733,6 +750,23 @@ function obtenerVideosActuales(){
     return contenidoServidor.videos || VIDEOS;
 }
 
+// Extrae el ID de YouTube de un link completo, o lo regresa tal cual si ya
+// es solo el ID.
+function extraerYoutubeId(texto){
+    if (!texto) return '';
+    texto = texto.trim();
+    const patrones = [
+        /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
+    ];
+    for (const p of patrones) {
+        const m = texto.match(p);
+        if (m) return m[1];
+    }
+    // Si ya parece ser solo el ID (11 caracteres típicos), úsalo tal cual.
+    if (/^[a-zA-Z0-9_-]{6,20}$/.test(texto)) return texto;
+    return texto;
+}
+
 function pintarVideos(){
     const grid = document.getElementById('video-grid');
     const vacio = document.getElementById('videos-vacio');
@@ -744,7 +778,12 @@ function pintarVideos(){
         const btn = document.createElement('button');
         btn.className = 'video-card';
         btn.style.setProperty('--accent', v.color || '#ff9000');
-        btn.innerHTML = `<span class="video-play">▶</span><span class="video-label">${v.titulo || ''}</span>`;
+        const portada = v.youtubeId
+            ? `<img src="https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg" alt="${v.titulo || ''}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;">`
+            : '';
+        btn.style.position = 'relative';
+        btn.style.overflow = 'hidden';
+        btn.innerHTML = `${portada}<span class="video-play" style="position:relative; z-index:1;">▶</span><span class="video-label" style="position:relative; z-index:1;">${v.titulo || ''}</span>`;
         btn.addEventListener('click', () => abrirVideoModal(v.youtubeId, v.titulo || 'Video'));
         grid.appendChild(btn);
     });
@@ -769,8 +808,9 @@ function renderFormularioVideos(){
         fila.innerHTML = `
             <label>Título</label>
             <input type="text" placeholder="Título del video" value="${v.titulo || ''}" data-campo="titulo" data-i="${i}">
-            <label style="margin-top:10px">ID de YouTube (opcional)</label>
-            <input type="text" placeholder="Ej. dQw4w9WgXcQ" value="${v.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
+            <label style="margin-top:10px">Link de YouTube (pega el link completo)</label>
+            <input type="text" placeholder="https://www.youtube.com/watch?v=..." value="${v.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
+            ${v.youtubeId ? `<img src="https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg" style="max-width:180px; border-radius:6px; margin-top:8px; display:block;" alt="Portada">` : ''}
             <div style="margin-top:10px; text-align:right;">
                 <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este video</button>
             </div>
@@ -778,10 +818,13 @@ function renderFormularioVideos(){
         videosModalLista.appendChild(fila);
     });
     videosModalLista.querySelectorAll('input').forEach((input) => {
-        input.addEventListener('input', () => {
+        input.addEventListener(input.getAttribute('data-campo') === 'youtubeId' ? 'change' : 'input', () => {
             const i = Number(input.getAttribute('data-i'));
             const campo = input.getAttribute('data-campo');
-            videosFormulario[i][campo] = input.value;
+            let valor = input.value;
+            if (campo === 'youtubeId') valor = extraerYoutubeId(valor);
+            videosFormulario[i][campo] = valor;
+            if (campo === 'youtubeId') renderFormularioVideos();
         });
     });
     videosModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
@@ -1809,6 +1852,7 @@ cargaContenidoServidor.then(() => {
     pintarVideos();
     pintarRecetas();
     aplicarOverridesInicio();
+    aplicarOverridesInfo();
     aplicarOverridesMenu();
     inyectarBotonesEdicionMenu();
     if (modoAdmin) mostrarBotonesAdmin(true);
@@ -1904,7 +1948,11 @@ function renderFormularioRecetas(){
         fila.innerHTML = `
             <div class="noticia-form-row">
                 <div style="flex:1"><label>Categoría</label><input type="text" placeholder="Ej. Café" value="${r.categoria || ''}" data-campo="categoria" data-i="${i}"></div>
-                <div style="flex:1"><label>Imagen</label><input type="text" placeholder="imagenes/foto.png" value="${r.imagen || ''}" data-campo="imagen" data-i="${i}"></div>
+                <div style="flex:1">
+                    <label>Imagen</label>
+                    <input type="file" accept="image/*" data-campo-archivo="imagen" data-i="${i}">
+                    ${r.imagen ? `<img src="${r.imagen}" style="max-width:100px; max-height:70px; display:block; margin-top:6px; border-radius:6px;" alt="">` : ''}
+                </div>
             </div>
             <label>Título</label>
             <input type="text" placeholder="Nombre de la receta" value="${r.titulo || ''}" data-campo="titulo" data-i="${i}">
@@ -1929,6 +1977,20 @@ function renderFormularioRecetas(){
             } else {
                 recetasFormulario[i][campo] = input.value;
             }
+        });
+    });
+    recetasModalLista.querySelectorAll('input[type="file"][data-campo-archivo]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const archivo = input.files[0];
+            if (!archivo) return;
+            const i = Number(input.getAttribute('data-i'));
+            const campo = input.getAttribute('data-campo-archivo');
+            const lector = new FileReader();
+            lector.onload = () => {
+                recetasFormulario[i][campo] = lector.result;
+                renderFormularioRecetas();
+            };
+            lector.readAsDataURL(archivo);
         });
     });
     recetasModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
@@ -2029,5 +2091,63 @@ if (inicioModalGuardar) {
         aplicarOverridesInicio();
         inicioModal.classList.remove('open');
         alert('Inicio actualizado: ya se ve así para todos los visitantes.');
+    });
+}
+// =====================================================================
+// INFORMACIÓN (Ubicación: horario, teléfono, correo, link del mapa)
+// =====================================================================
+function aplicarOverridesInfo(){
+    const datos = contenidoServidor.info;
+    if (!datos) return;
+    const horarioEl = document.getElementById('info-horario');
+    const telefonoEl = document.getElementById('info-telefono');
+    const correoEl = document.getElementById('info-correo');
+    const mapaEl = document.getElementById('info-mapa-link');
+    if (horarioEl && datos.horario) horarioEl.textContent = datos.horario;
+    if (telefonoEl && datos.telefono) telefonoEl.textContent = datos.telefono;
+    if (correoEl && datos.correo) correoEl.textContent = datos.correo;
+    if (mapaEl && datos.mapa) mapaEl.href = datos.mapa;
+}
+
+const infoAdminBtn = document.getElementById('info-admin-btn');
+const infoModal = document.getElementById('info-modal');
+const infoModalClose = document.getElementById('info-modal-close');
+const infoModalGuardar = document.getElementById('info-modal-guardar');
+const infoFormHorario = document.getElementById('info-form-horario');
+const infoFormTelefono = document.getElementById('info-form-telefono');
+const infoFormCorreo = document.getElementById('info-form-correo');
+const infoFormMapa = document.getElementById('info-form-mapa');
+
+if (infoAdminBtn) {
+    infoAdminBtn.addEventListener('click', () => {
+        const horarioEl = document.getElementById('info-horario');
+        const telefonoEl = document.getElementById('info-telefono');
+        const correoEl = document.getElementById('info-correo');
+        const mapaEl = document.getElementById('info-mapa-link');
+        if (infoFormHorario) infoFormHorario.value = horarioEl ? horarioEl.textContent.trim() : '';
+        if (infoFormTelefono) infoFormTelefono.value = telefonoEl ? telefonoEl.textContent.trim() : '';
+        if (infoFormCorreo) infoFormCorreo.value = correoEl ? correoEl.textContent.trim() : '';
+        if (infoFormMapa) infoFormMapa.value = mapaEl ? mapaEl.getAttribute('href') : '';
+        infoModal.classList.add('open');
+    });
+}
+if (infoModalClose) infoModalClose.addEventListener('click', () => infoModal.classList.remove('open'));
+if (infoModal) infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('open'); });
+if (infoModalGuardar) {
+    infoModalGuardar.addEventListener('click', async () => {
+        const nuevo = {
+            horario: infoFormHorario ? infoFormHorario.value.trim() : '',
+            telefono: infoFormTelefono ? infoFormTelefono.value.trim() : '',
+            correo: infoFormCorreo ? infoFormCorreo.value.trim() : '',
+            mapa: infoFormMapa ? infoFormMapa.value.trim() : ''
+        };
+        infoModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('info', nuevo);
+        infoModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.info = nuevo;
+        aplicarOverridesInfo();
+        infoModal.classList.remove('open');
+        alert('Información actualizada: ya se ve así para todos los visitantes.');
     });
 }
