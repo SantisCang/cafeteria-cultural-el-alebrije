@@ -42,10 +42,10 @@ const PANEL_SECRETO_HASH = '#panel-secreto-alebrije';
 const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
 
 // ⚠️ Mismo dominio de Vercel que configuraste para Mercado Pago.
-const API_BASE_URL = 'https://TU-PROYECTO.vercel.app/api';
+const API_BASE_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api';
 
 let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-let contenidoServidor = { noticias: null, promociones: null, menu: {} };
+let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null };
 
 function mostrarBotonesAdmin(mostrar){
     document.querySelectorAll('.solo-admin').forEach((el) => {
@@ -566,29 +566,21 @@ if (menuBar) {
 const videoModal = document.getElementById('video-modal');
 const videoModalFrame = document.getElementById('video-modal-frame');
 const videoModalClose = document.getElementById('video-modal-close');
-const videoCards = document.querySelectorAll('.video-card');
 
-videoCards.forEach((card) => {
-    card.addEventListener('click', () => {
-        const videoId = card.getAttribute('data-video');
-        const title = card.getAttribute('data-title') || 'Video';
-
-        if (!videoId) {
-            // Aún no se ha conectado un video real para esta tarjeta.
-            videoModalFrame.innerHTML = `<p style="color:#fff;padding:40px;text-align:center;">
-                Todavía no se ha agregado el video de "${title}".<br>
-                Edita el atributo data-video de esta tarjeta en inicio.html.
-            </p>`;
-        } else {
-            videoModalFrame.innerHTML = `<iframe
-                src="https://www.youtube.com/embed/${videoId}"
-                title="${title}"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>`;
-        }
-        videoModal.classList.add('open');
-    });
-});
+function abrirVideoModal(videoId, title){
+    if (!videoId) {
+        videoModalFrame.innerHTML = `<p style="color:#fff;padding:40px;text-align:center;">
+            Todavía no se ha agregado el video de "${title}".
+        </p>`;
+    } else {
+        videoModalFrame.innerHTML = `<iframe
+            src="https://www.youtube.com/embed/${videoId}"
+            title="${title}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>`;
+    }
+    videoModal.classList.add('open');
+}
 
 function cerrarVideoModal() {
     videoModal.classList.remove('open');
@@ -601,6 +593,226 @@ if (videoModalClose) {
 if (videoModal) {
     videoModal.addEventListener('click', (e) => {
         if (e.target === videoModal) cerrarVideoModal();
+    });
+}
+
+// =====================================================================
+// PODCAST
+// =====================================================================
+// Lista de episodios que se muestra por defecto. En cuanto se guarde un
+// cambio desde el panel oculto, se usa esa versión para todos los
+// visitantes en vez de esta lista.
+const PODCAST = [
+    { numero: 'Ep. 01', duracion: '24 min', color: '#e6007e', titulo: 'El origen de los alebrijes', descripcion: 'De dónde viene el nombre del café y la leyenda detrás de estas criaturas de colores.', audio: '' },
+    { numero: 'Ep. 02', duracion: '31 min', color: '#00b3a4', titulo: 'De la milpa a la taza', descripcion: 'Platicamos con productores de café de altura sobre el camino del grano hasta tu mesa.', audio: '' },
+    { numero: 'Ep. 03', duracion: '27 min', color: '#1f6fd6', titulo: 'Voces del barrio', descripcion: 'Artesanos y vecinos que exponen su trabajo en nuestras paredes cuentan su historia.', audio: '' },
+    { numero: 'Ep. 04', duracion: '22 min', color: '#ff9000', titulo: 'Crónicas del foro', descripcion: 'Lo que pasa detrás de cámaras en nuestras noches de música en vivo.', audio: '' }
+];
+
+function obtenerPodcastActual(){
+    return contenidoServidor.podcast || PODCAST;
+}
+
+function pintarPodcast(){
+    const grid = document.getElementById('podcast-grid');
+    const vacio = document.getElementById('podcast-vacio');
+    if (!grid) return;
+    const episodios = obtenerPodcastActual();
+    grid.innerHTML = '';
+    if (vacio) vacio.hidden = episodios.length > 0;
+    episodios.forEach((ep) => {
+        const art = document.createElement('article');
+        art.className = 'podcast-card';
+        art.style.setProperty('--accent', ep.color || '#ff9000');
+        art.innerHTML = `
+            <div class="podcast-card-top">
+                <span class="podcast-num">${ep.numero || ''}</span>
+                <span class="podcast-dur">${ep.duracion || ''}</span>
+            </div>
+            <h3>${ep.titulo || ''}</h3>
+            <p>${ep.descripcion || ''}</p>
+            <audio controls ${ep.audio ? `src="${ep.audio}"` : ''}></audio>
+        `;
+        grid.appendChild(art);
+    });
+}
+pintarPodcast();
+
+// Panel de administración de Podcast (mismo patrón que Noticias/Promociones)
+const podcastAdminBtn = document.getElementById('podcast-admin-btn');
+const podcastModal = document.getElementById('podcast-modal');
+const podcastModalClose = document.getElementById('podcast-modal-close');
+const podcastModalLista = document.getElementById('podcast-modal-lista');
+const podcastModalAgregar = document.getElementById('podcast-modal-agregar');
+const podcastModalGuardar = document.getElementById('podcast-modal-guardar');
+let podcastFormulario = [];
+
+function renderFormularioPodcast(){
+    if (!podcastModalLista) return;
+    podcastModalLista.innerHTML = '';
+    podcastFormulario.forEach((ep, i) => {
+        const fila = document.createElement('div');
+        fila.className = 'noticia-form';
+        fila.innerHTML = `
+            <div class="noticia-form-row">
+                <div style="flex:1"><label>Número</label><input type="text" placeholder="Ep. 0${i + 1}" value="${ep.numero || ''}" data-campo="numero" data-i="${i}"></div>
+                <div style="flex:1"><label>Duración</label><input type="text" placeholder="24 min" value="${ep.duracion || ''}" data-campo="duracion" data-i="${i}"></div>
+            </div>
+            <label>Título</label>
+            <input type="text" placeholder="Título del episodio" value="${ep.titulo || ''}" data-campo="titulo" data-i="${i}">
+            <label style="margin-top:10px">Descripción</label>
+            <textarea data-campo="descripcion" data-i="${i}">${ep.descripcion || ''}</textarea>
+            <label style="margin-top:10px">Link del audio (opcional)</label>
+            <input type="text" placeholder="https://..." value="${ep.audio || ''}" data-campo="audio" data-i="${i}">
+            <div style="margin-top:10px; text-align:right;">
+                <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este episodio</button>
+            </div>
+        `;
+        podcastModalLista.appendChild(fila);
+    });
+    podcastModalLista.querySelectorAll('input, textarea').forEach((input) => {
+        input.addEventListener('input', () => {
+            const i = Number(input.getAttribute('data-i'));
+            const campo = input.getAttribute('data-campo');
+            podcastFormulario[i][campo] = input.value;
+        });
+    });
+    podcastModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const i = Number(btn.getAttribute('data-i'));
+            podcastFormulario.splice(i, 1);
+            renderFormularioPodcast();
+        });
+    });
+}
+
+if (podcastAdminBtn) {
+    podcastAdminBtn.addEventListener('click', () => {
+        podcastFormulario = JSON.parse(JSON.stringify(obtenerPodcastActual()));
+        renderFormularioPodcast();
+        podcastModal.classList.add('open');
+    });
+}
+if (podcastModalClose) podcastModalClose.addEventListener('click', () => podcastModal.classList.remove('open'));
+if (podcastModal) podcastModal.addEventListener('click', (e) => { if (e.target === podcastModal) podcastModal.classList.remove('open'); });
+if (podcastModalAgregar) {
+    podcastModalAgregar.addEventListener('click', () => {
+        podcastFormulario.push({ numero: '', duracion: '', color: '#ff9000', titulo: '', descripcion: '', audio: '' });
+        renderFormularioPodcast();
+    });
+}
+if (podcastModalGuardar) {
+    podcastModalGuardar.addEventListener('click', async () => {
+        podcastModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('podcast', podcastFormulario);
+        podcastModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.podcast = podcastFormulario;
+        pintarPodcast();
+        podcastModal.classList.remove('open');
+        alert('Podcast actualizado: ya se ve así para todos los visitantes.');
+    });
+}
+
+// =====================================================================
+// VIDEOS
+// =====================================================================
+const VIDEOS = [
+    { titulo: 'Un día en El Alebrije', color: '#e6007e', youtubeId: '' },
+    { titulo: 'Ritual del café de olla', color: '#00b3a4', youtubeId: '' },
+    { titulo: 'Pintando alebrijes', color: '#1f6fd6', youtubeId: '' },
+    { titulo: 'Noche de jazz en el patio', color: '#ff9000', youtubeId: '' }
+];
+
+function obtenerVideosActuales(){
+    return contenidoServidor.videos || VIDEOS;
+}
+
+function pintarVideos(){
+    const grid = document.getElementById('video-grid');
+    const vacio = document.getElementById('videos-vacio');
+    if (!grid) return;
+    const videos = obtenerVideosActuales();
+    grid.innerHTML = '';
+    if (vacio) vacio.hidden = videos.length > 0;
+    videos.forEach((v) => {
+        const btn = document.createElement('button');
+        btn.className = 'video-card';
+        btn.style.setProperty('--accent', v.color || '#ff9000');
+        btn.innerHTML = `<span class="video-play">▶</span><span class="video-label">${v.titulo || ''}</span>`;
+        btn.addEventListener('click', () => abrirVideoModal(v.youtubeId, v.titulo || 'Video'));
+        grid.appendChild(btn);
+    });
+}
+pintarVideos();
+
+// Panel de administración de Videos
+const videosAdminBtn = document.getElementById('videos-admin-btn');
+const videosModal = document.getElementById('videos-modal');
+const videosModalClose = document.getElementById('videos-modal-close');
+const videosModalLista = document.getElementById('videos-modal-lista');
+const videosModalAgregar = document.getElementById('videos-modal-agregar');
+const videosModalGuardar = document.getElementById('videos-modal-guardar');
+let videosFormulario = [];
+
+function renderFormularioVideos(){
+    if (!videosModalLista) return;
+    videosModalLista.innerHTML = '';
+    videosFormulario.forEach((v, i) => {
+        const fila = document.createElement('div');
+        fila.className = 'noticia-form';
+        fila.innerHTML = `
+            <label>Título</label>
+            <input type="text" placeholder="Título del video" value="${v.titulo || ''}" data-campo="titulo" data-i="${i}">
+            <label style="margin-top:10px">ID de YouTube (opcional)</label>
+            <input type="text" placeholder="Ej. dQw4w9WgXcQ" value="${v.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
+            <div style="margin-top:10px; text-align:right;">
+                <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este video</button>
+            </div>
+        `;
+        videosModalLista.appendChild(fila);
+    });
+    videosModalLista.querySelectorAll('input').forEach((input) => {
+        input.addEventListener('input', () => {
+            const i = Number(input.getAttribute('data-i'));
+            const campo = input.getAttribute('data-campo');
+            videosFormulario[i][campo] = input.value;
+        });
+    });
+    videosModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const i = Number(btn.getAttribute('data-i'));
+            videosFormulario.splice(i, 1);
+            renderFormularioVideos();
+        });
+    });
+}
+
+if (videosAdminBtn) {
+    videosAdminBtn.addEventListener('click', () => {
+        videosFormulario = JSON.parse(JSON.stringify(obtenerVideosActuales()));
+        renderFormularioVideos();
+        videosModal.classList.add('open');
+    });
+}
+if (videosModalClose) videosModalClose.addEventListener('click', () => videosModal.classList.remove('open'));
+if (videosModal) videosModal.addEventListener('click', (e) => { if (e.target === videosModal) videosModal.classList.remove('open'); });
+if (videosModalAgregar) {
+    videosModalAgregar.addEventListener('click', () => {
+        videosFormulario.push({ titulo: '', color: '#ff9000', youtubeId: '' });
+        renderFormularioVideos();
+    });
+}
+if (videosModalGuardar) {
+    videosModalGuardar.addEventListener('click', async () => {
+        videosModalGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('videos', videosFormulario);
+        videosModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.videos = videosFormulario;
+        pintarVideos();
+        videosModal.classList.remove('open');
+        alert('Videos actualizados: ya se ven así para todos los visitantes.');
     });
 }
 document.addEventListener('keydown', (e) => {
@@ -1121,7 +1333,7 @@ const pedidoModalEnviarTexto = document.getElementById('pedido-modal-enviar-text
 
 // ⚠️ URL de tu función de Mercado Pago (Vercel). Reemplázala por la tuya
 // cuando termines el paso de despliegue en Vercel (ver guía).
-const MERCADOPAGO_API_URL = 'https://TU-PROYECTO.vercel.app/api/create-preference';
+const MERCADOPAGO_API_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api/create-preference';
 const pedidoNombreTransfiereInput = document.getElementById('pedido-nombre-transfiere');
 const pedidoNombreError = document.getElementById('pedido-nombre-error');
 const transferenciaCopiarBtn = document.getElementById('transferencia-copiar-btn');
@@ -1479,6 +1691,8 @@ function inyectarBotonesEdicionMenu(){
 cargaContenidoServidor.then(() => {
     pintarNoticias();
     pintarPromociones2();
+    pintarPodcast();
+    pintarVideos();
     aplicarOverridesMenu();
     inyectarBotonesEdicionMenu();
     if (modoAdmin) mostrarBotonesAdmin(true);
