@@ -10,21 +10,15 @@
 </head>
 <body>
 
-    <div id="frase-dia-banner" class="frase-dia-banner" hidden>
-        <button type="button" class="frase-dia-cerrar" id="frase-dia-cerrar" aria-label="Cerrar">✕</button>
-        <img id="frase-dia-img" src="" alt="Aviso del día">
-    </div>
-
-    <button type="button" class="noticias-admin-btn solo-admin" id="frase-dia-admin-btn" hidden style="position:fixed; top:10px; right:10px; z-index:9998;">📌 Frase del día</button>
-
     <div class="noticias-modal" id="frase-dia-modal">
         <div class="noticias-modal-inner">
             <button class="noticias-modal-close" id="frase-dia-modal-close" aria-label="Cerrar">✕</button>
             <h3>📌 Publicar frase / imagen del día</h3>
             <p class="noticias-modal-sub">
-                Sube una imagen (saludo, día festivo, recordatorio, etc.). Se va a mostrar arriba
-                de la página para TODOS los visitantes durante las próximas 24 horas exactas, y
-                después desaparece sola — no hay que quitarla a mano.
+                Sube una imagen (saludo, día festivo, recordatorio, etc.). Va a aparecer en el
+                espacio del logo, en la primera pantalla del sitio, para TODOS los visitantes,
+                durante las próximas 24 horas exactas — después vuelve a aparecer el logo solo,
+                no hay que quitarla a mano.
             </p>
             <div class="noticia-form">
                 <label>Imagen</label>
@@ -120,10 +114,13 @@
                     y buenas pláticas. Aquí cada taza cuenta una historia.
                 </p>
                 <a href="#nosotros" class="btn-1" id="hero-boton">Conócenos</a>
-                <button type="button" class="noticias-admin-btn solo-admin" id="inicio-admin-btn" hidden style="margin-top:14px;">✏️ Administrar Inicio</button>
+                <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button type="button" class="noticias-admin-btn solo-admin" id="inicio-admin-btn" hidden>✏️ Administrar Inicio</button>
+                    <button type="button" class="noticias-admin-btn solo-admin" id="frase-dia-admin-btn" hidden>📌 Frase del día</button>
+                </div>
             </div>
             <div class="header-img">
-                <img src="imagenes/comida1.png" alt="Platillo especial de la casa">
+                <img src="imagenes/comida1.png" alt="Café Cultural El Alebrije" id="hero-logo-img">
             </div>
         </div>
 

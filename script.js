@@ -1694,11 +1694,10 @@ function inyectarBotonesEdicionMenu(){
 
 // Cuando llega el contenido del servidor: aplica noticias, promos y menú.
 // =====================================================================
-// FRASE / IMAGEN DEL DÍA (banner temporal, dura 24 horas exactas)
+// FRASE / IMAGEN DEL DÍA (reemplaza el logo del hero, dura 24 horas)
 // =====================================================================
-const fraseDiaBanner = document.getElementById('frase-dia-banner');
-const fraseDiaImg = document.getElementById('frase-dia-img');
-const fraseDiaCerrar = document.getElementById('frase-dia-cerrar');
+const heroLogoImg = document.getElementById('hero-logo-img');
+const LOGO_ORIGINAL_SRC = 'imagenes/comida1.png';
 const fraseDiaAdminBtn = document.getElementById('frase-dia-admin-btn');
 const fraseDiaModal = document.getElementById('frase-dia-modal');
 const fraseDiaModalClose = document.getElementById('frase-dia-modal-close');
@@ -1714,22 +1713,14 @@ async function cargarFraseDelDia(){
         const resp = await fetch(`${API_BASE_URL}/frase-dia`);
         if (!resp.ok) return;
         const datos = await resp.json();
-        if (datos.imagen && !sessionStorage.getItem('elalebrije-frase-dia-cerrada')) {
-            fraseDiaImg.src = datos.imagen;
-            fraseDiaBanner.hidden = false;
+        if (datos.imagen && heroLogoImg) {
+            heroLogoImg.src = datos.imagen;
         }
     } catch (err) {
         console.warn('No se pudo cargar la frase del día:', err);
     }
 }
 cargarFraseDelDia();
-
-if (fraseDiaCerrar) {
-    fraseDiaCerrar.addEventListener('click', () => {
-        fraseDiaBanner.hidden = true;
-        sessionStorage.setItem('elalebrije-frase-dia-cerrada', 'true');
-    });
-}
 
 if (fraseDiaAdminBtn) {
     fraseDiaAdminBtn.addEventListener('click', () => {
@@ -1793,22 +1784,20 @@ if (fraseDiaModalGuardar) {
         const ok = await llamarFraseDiaAPI('POST', { imagen: fraseDiaBase64Nueva });
         fraseDiaModalGuardar.disabled = false;
         if (!ok) return;
-        fraseDiaImg.src = fraseDiaBase64Nueva;
-        fraseDiaBanner.hidden = false;
-        sessionStorage.removeItem('elalebrije-frase-dia-cerrada');
+        if (heroLogoImg) heroLogoImg.src = fraseDiaBase64Nueva;
         fraseDiaModal.classList.remove('open');
-        alert('Publicada: se verá para todos durante las próximas 24 horas, y después desaparece sola.');
+        alert('Publicada: se verá para todos en el espacio del logo durante las próximas 24 horas, y después vuelve a salir el logo solo.');
     });
 }
 
 if (fraseDiaModalQuitar) {
     fraseDiaModalQuitar.addEventListener('click', async () => {
-        if (!confirm('¿Quitar la imagen actual para todos los visitantes?')) return;
+        if (!confirm('¿Quitar la imagen actual y regresar el logo para todos los visitantes?')) return;
         fraseDiaModalQuitar.disabled = true;
         const ok = await llamarFraseDiaAPI('DELETE', {});
         fraseDiaModalQuitar.disabled = false;
         if (!ok) return;
-        fraseDiaBanner.hidden = true;
+        if (heroLogoImg) heroLogoImg.src = LOGO_ORIGINAL_SRC;
         fraseDiaModal.classList.remove('open');
     });
 }
@@ -1993,7 +1982,11 @@ function obtenerInicioActual(){
 }
 
 function aplicarOverridesInicio(){
-    const datos = obtenerInicioActual();
+    // Solo toca el título/párrafo/botón si el admin de verdad guardó un
+    // cambio desde el panel — así el texto original (con su color naranja)
+    // se queda intacto mientras nadie lo edite.
+    const datos = contenidoServidor.inicio;
+    if (!datos) return;
     const tituloEl = document.getElementById('hero-titulo');
     const parrafoEl = document.getElementById('hero-parrafo');
     const botonEl = document.getElementById('hero-boton');
