@@ -481,6 +481,11 @@ body.dark-mode .theme-toggle {
     width: 100%;
     max-width: 420px;
     height: auto;
+    animation: hero-img-float 4s ease-in-out infinite;
+}
+@keyframes hero-img-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
 }
 /* ---- Noticias / próximos eventos ---- */
 @keyframes noticias-badge-pulse {
@@ -2333,6 +2338,10 @@ body.dark-mode .bg,
 body.dark-mode .bg-2 {
     opacity: 0.35;
     filter: brightness(0.7) saturate(0.8);
+}
+body.dark-mode .header .bg {
+    opacity: 0.85;
+    filter: brightness(1) saturate(1.1);
 }
 body.dark-mode .header-txt h1 {
     color: #f6efe4;
