@@ -475,9 +475,15 @@ body.dark-mode .theme-toggle {
 .header-img {
     width: 50%;
     text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 .header-img img {
-    width: 650px;
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    object-fit: contain;
 }
 /* ---- Noticias / próximos eventos ---- */
 @keyframes noticias-badge-pulse {
