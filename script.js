@@ -783,7 +783,7 @@ function pintarVideos(){
             : '';
         btn.style.position = 'relative';
         btn.style.overflow = 'hidden';
-        btn.innerHTML = `${portada}<span class="video-play" style="position:relative; z-index:1;">▶</span><span class="video-label" style="position:relative; z-index:1;">${v.titulo || ''}</span>`;
+        btn.innerHTML = `${portada}<span class="video-play" style="z-index:1;">▶</span><span class="video-label" style="z-index:1;">${v.titulo || ''}</span>`;
         btn.addEventListener('click', () => abrirVideoModal(v.youtubeId, v.titulo || 'Video'));
         grid.appendChild(btn);
     });
