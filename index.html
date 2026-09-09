@@ -724,7 +724,7 @@
             
             <div class="menu-agregar-producto solo-admin" id="agregar-bebidas-wrap" hidden>
                 <button type="button" class="noticias-modal-agregar" id="agregar-bebidas-btn">+ Agregar bebidas</button>
-                <button type="button" class="noticias-modal-agregar" id="agregar-sabor-btn">+ Agregar sabor nuevo</button>
+                <button type="button" class="noticias-modal-agregar" id="agregar-sabor-btn">Administrar sabores nuevos</button>
             </div>
 </div>
 
@@ -1369,12 +1369,14 @@
     <div class="noticias-modal" id="nuevo-sabor-modal">
         <div class="noticias-modal-inner">
             <button class="noticias-modal-close" id="nuevo-sabor-modal-close" aria-label="Cerrar">✕</button>
-            <h3>🍹 Agregar sabor nuevo</h3>
+            <h3>🍹 Administrar sabores nuevos</h3>
             <p class="noticias-modal-sub">
-                Elige la bebida y escribe el sabor nuevo. Se agrega como una opción más para que el cliente elija.
+                Aquí solo aparecen los sabores agregados hace menos de 30 días: puedes editar su nombre/precio o eliminarlos. Los sabores de siempre del menú no se muestran aquí.
             </p>
-            <div class="noticia-form">
-                <label>Bebida</label>
+            <div id="nuevo-sabor-lista"></div>
+            <div class="noticia-form" style="margin-top:6px;">
+                <label>Agregar un sabor nuevo a la lista</label>
+                <label style="margin-top:10px">Bebida</label>
                 <select id="nuevo-sabor-producto">
                     <option value="capuchino">Capuchino</option>
                     <option value="capuchino-frio">Capuchino Frío</option>
@@ -1388,9 +1390,10 @@
                 <input type="text" id="nuevo-sabor-nombre" placeholder="Ej. Rompope">
                 <label style="margin-top:10px">Precio (déjalo vacío si no cambia el precio)</label>
                 <input type="text" id="nuevo-sabor-precio" placeholder="Ej. 50">
+                <button type="button" class="noticias-modal-agregar" id="nuevo-sabor-agregar-lista" style="margin-top:12px;">+ Agregar a la lista</button>
             </div>
             <div class="noticias-modal-acciones">
-                <button type="button" class="pedido-modal-enviar" id="nuevo-sabor-guardar">Aceptar</button>
+                <button type="button" class="pedido-modal-enviar" id="nuevo-sabor-guardar">Guardar cambios</button>
                 <button type="button" class="noticias-modal-agregar" id="nuevo-sabor-cancelar">Cancelar</button>
             </div>
         </div>

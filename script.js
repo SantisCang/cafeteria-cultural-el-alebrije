@@ -1667,24 +1667,34 @@ function aplicarOverridesMenu(){
     });
 }
 
-// Agrega un botón "✏️" (solo visible en modo admin) a cada tarjeta del menú
-// que NO tenga opciones que cambien el precio (sabor/tamaño con su propio
-// precio), para editar con seguridad nombre, descripción y precio sin
-// romper esa lógica.
+// Agrega un botón "✏️" (solo visible en modo admin) ÚNICAMENTE a los
+// productos que se acaban de agregar como nuevos (menos de 30 días).
+// Los productos originales del menú no se pueden editar desde aquí.
+function repintarMenuNuevos(){
+    document.querySelectorAll('[data-item-id^="nuevo-"]').forEach((el) => el.remove());
+    pintarMenuNuevos();
+    inyectarBotonesEdicionMenu();
+}
+
 function inyectarBotonesEdicionMenu(){
     document.querySelectorAll('[data-item-id]').forEach((tarjeta) => {
         if (tarjeta.querySelector('.menu-edit-btn')) return; // ya tiene botón
 
-        const tieneOpciones = !!tarjeta.querySelector('.item-options .option-group .option-pill');
         const itemId = tarjeta.getAttribute('data-item-id');
+        const match = itemId && itemId.match(/^nuevo-(bebidas|snacks|desayunos|corrida)-(\d+)$/);
+        if (!match) return; // solo se puede editar/eliminar lo que se acaba de agregar
+
+        const cat = match[1];
+        const idx = Number(match[2]);
+        const datos = obtenerMenuNuevosActual();
+        const item = (datos[cat] || [])[idx];
+        if (!item || !esReciente(item.fecha)) return; // ya dejó de ser "nuevo": ya no se edita aquí
 
         const boton = document.createElement('button');
         boton.type = 'button';
         boton.className = 'menu-edit-btn solo-admin';
         boton.hidden = !modoAdmin;
-        boton.title = tieneOpciones
-            ? 'Editar o eliminar los sabores/opciones de este producto'
-            : 'Editar nombre, descripción o precio';
+        boton.title = 'Editar o eliminar este producto nuevo';
         boton.textContent = '✏️';
         boton.style.cssText = 'margin-left:6px;cursor:pointer;border:none;background:transparent;font-size:0.9rem;';
 
@@ -1692,41 +1702,39 @@ function inyectarBotonesEdicionMenu(){
             e.preventDefault();
             e.stopPropagation();
 
-            if (tieneOpciones) {
-                editarOpcionesConPrecio(tarjeta, itemId);
-                return;
-            }
-
-            const nombreActual = tarjeta.getAttribute('data-name') || '';
-            const descEl = tarjeta.querySelector('.menu-item-desc, .product-txt > p:not(.precio)');
-            const descActual = descEl ? descEl.textContent.trim() : '';
-            const precioActual = tarjeta.getAttribute('data-base-price') || '';
-
-            const nuevoNombre = window.prompt('Nombre del platillo/bebida:', nombreActual);
+            const nuevoNombre = window.prompt('Nombre (déjalo vacío para eliminar este producto):', item.nombre || '');
             if (nuevoNombre === null) return;
-            const nuevaDescripcion = window.prompt('Descripción:', descActual);
-            if (nuevaDescripcion === null) return;
-            const nuevoPrecioTxt = window.prompt('Precio (solo el número, sin $):', precioActual);
-            if (nuevoPrecioTxt === null) return;
 
-            const nuevoPrecio = nuevoPrecioTxt.trim() === '' ? '' : Number(nuevoPrecioTxt.trim());
-            if (nuevoPrecioTxt.trim() !== '' && isNaN(nuevoPrecio)) {
-                alert('El precio debe ser un número. No se guardó el cambio.');
-                return;
-            }
-
-            const overrides = { ...(contenidoServidor.menu || {}) };
-            overrides[itemId] = {
-                nombre: nuevoNombre.trim(),
-                descripcion: nuevaDescripcion.trim(),
-                precio: nuevoPrecio
+            const datosActuales = obtenerMenuNuevosActual();
+            const copia = {
+                bebidas: [...(datosActuales.bebidas || [])],
+                snacks: [...(datosActuales.snacks || [])],
+                desayunos: [...(datosActuales.desayunos || [])],
+                corrida: [...(datosActuales.corrida || [])]
             };
 
-            const ok = await guardarContenidoEnServidor('menu', overrides);
-            if (!ok) return;
+            if (!nuevoNombre.trim()) {
+                copia[cat].splice(idx, 1);
+                const ok = await guardarContenidoEnServidor('menu-nuevos', copia);
+                if (!ok) return;
+                contenidoServidor.menuNuevos = copia;
+                repintarMenuNuevos();
+                alert('Producto eliminado.');
+                return;
+            }
 
-            contenidoServidor.menu = overrides;
-            aplicarOverridesMenu();
+            const nuevaDescripcion = window.prompt('Descripción:', item.descripcion || '');
+            if (nuevaDescripcion === null) return;
+            const nuevoPrecioTxt = window.prompt('Precio (solo el número):', item.precio || '');
+            if (nuevoPrecioTxt === null) return;
+            const nuevoPrecio = Number(nuevoPrecioTxt.trim());
+            if (isNaN(nuevoPrecio)) { alert('El precio debe ser un número. No se guardó el cambio.'); return; }
+
+            copia[cat][idx] = { ...item, nombre: nuevoNombre.trim(), descripcion: nuevaDescripcion.trim(), precio: nuevoPrecio };
+            const ok = await guardarContenidoEnServidor('menu-nuevos', copia);
+            if (!ok) return;
+            contenidoServidor.menuNuevos = copia;
+            repintarMenuNuevos();
             alert('Cambio guardado: ya se ve así para todos los visitantes.');
         });
 
@@ -2247,7 +2255,7 @@ function crearTarjetaMenuSimple(item, itemId){
     div.setAttribute('data-base-price', item.precio);
     div.setAttribute('data-image', item.imagen || 'imagenes/logo.png');
     div.setAttribute('data-item-id', itemId);
-    const badge = esReciente(item.fecha) ? '<span class="badge-nuevo">🆕 Nuevo</span>' : '';
+    const badge = esReciente(item.fecha) ? '<span class="badge-nuevo">Nuevo</span>' : '';
     div.innerHTML = `
         <img class="menu-item-thumb" src="${item.imagen || 'imagenes/logo.png'}" alt="">
         <div class="menu-item-head"><span class="menu-item-name">${item.nombre || ''}${badge}</span><span class="menu-item-price" data-price-display>$${item.precio}</span></div>
@@ -2413,43 +2421,37 @@ if (nuevoProductoGuardar) {
 // =====================================================================
 // AGREGAR SABOR NUEVO a una bebida ya existente (Frappé, Té, Atole, Capuchino, etc.)
 // =====================================================================
-function obtenerSaboresNuevosActuales(){
-    return contenidoServidor.menuSabores || [];
-}
+const SABORES_ITEMS = [
+    { id: 'capuchino', nombre: 'Capuchino' },
+    { id: 'capuchino-frio', nombre: 'Capuchino Frío' },
+    { id: 'latte', nombre: 'Latte' },
+    { id: 'latte-frio', nombre: 'Latte Frío' },
+    { id: 'atole', nombre: 'Atole' },
+    { id: 'frappe', nombre: 'Frappé' },
+    { id: 'te', nombre: 'Té' }
+];
 
-// Pinta en el menú los sabores nuevos guardados: agrega una opción (pill)
-// más al grupo de opciones del producto correspondiente.
-function pintarSaboresNuevos(){
-    const sabores = obtenerSaboresNuevosActuales();
-    sabores.forEach((s, i) => {
-        const marcaId = `sabor-nuevo-${i}`;
-        document.querySelectorAll(`[data-item-id="${s.itemId}"]`).forEach((tarjeta) => {
-            if (tarjeta.querySelector(`[data-sabor-nuevo-id="${marcaId}"]`)) return; // ya está pintado
-            let grupo = tarjeta.querySelector('.item-options .option-group');
-            if (!grupo) {
-                const opciones = document.createElement('div');
-                opciones.className = 'item-options';
-                opciones.innerHTML = '<div class="option-group"></div>';
-                const desc = tarjeta.querySelector('.menu-item-desc');
-                (desc || tarjeta.querySelector('.menu-item-head')).insertAdjacentElement('afterend', opciones);
-                grupo = opciones.querySelector('.option-group');
-            }
-            const nombreGrupo = grupo.querySelector('input') ? grupo.querySelector('input').name : `${s.itemId}-sabor-nuevo`;
-            const label = document.createElement('label');
-            label.className = 'option-pill' + (esReciente(s.fecha) ? ' sabor-nuevo' : '');
-            label.setAttribute('data-sabor-nuevo-id', marcaId);
-            const badge = esReciente(s.fecha) ? ' 🆕' : '';
-            if (s.precio) {
-                grupo.setAttribute('data-affects-price', 'true');
-                label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${s.sabor}" data-price="${s.precio}"><span>${s.sabor} · $${s.precio}${badge}</span>`;
-            } else {
-                label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${s.sabor}"><span>${s.sabor}${badge}</span>`;
-            }
-            grupo.appendChild(label);
-        });
+// Lee las opciones actuales de un producto (de lo guardado, o si nunca se
+// ha tocado, de lo que ya está pintado en el HTML original).
+function obtenerOpcionesDeItem(itemId){
+    const overrides = contenidoServidor.menu || {};
+    if (overrides[itemId] && overrides[itemId].opciones) return overrides[itemId].opciones;
+    const tarjeta = document.querySelector(`[data-item-id="${itemId}"]`);
+    const grupo = tarjeta ? tarjeta.querySelector('.item-options .option-group') : null;
+    if (!grupo) return [];
+    return [...grupo.querySelectorAll('.option-pill')].map((pill) => {
+        const input = pill.querySelector('input');
+        const span = pill.querySelector('span');
+        const texto = span ? span.textContent.replace(/\s*·\s*\$\d+(\.\d+)?/, '').trim() : '';
+        const p = input && input.getAttribute('data-price') ? Number(input.getAttribute('data-price')) : null;
+        return { texto, precio: p, fecha: pill.getAttribute('data-fecha') || undefined };
     });
 }
 
+// =====================================================================
+// ADMINISTRAR SABORES NUEVOS (modal interactivo: editar/eliminar/agregar)
+// Solo se pueden tocar aquí los sabores agregados hace menos de 30 días.
+// =====================================================================
 const agregarSaborBtn = document.getElementById('agregar-sabor-btn');
 const nuevoSaborModal = document.getElementById('nuevo-sabor-modal');
 const nuevoSaborModalClose = document.getElementById('nuevo-sabor-modal-close');
@@ -2458,6 +2460,47 @@ const nuevoSaborProducto = document.getElementById('nuevo-sabor-producto');
 const nuevoSaborNombre = document.getElementById('nuevo-sabor-nombre');
 const nuevoSaborPrecio = document.getElementById('nuevo-sabor-precio');
 const nuevoSaborGuardar = document.getElementById('nuevo-sabor-guardar');
+const nuevoSaborLista = document.getElementById('nuevo-sabor-lista');
+
+let saboresFormulario = [];
+
+function construirSaboresFormulario(){
+    saboresFormulario = [];
+    SABORES_ITEMS.forEach((it) => {
+        obtenerOpcionesDeItem(it.id).filter((op) => esReciente(op.fecha)).forEach((op) => {
+            saboresFormulario.push({ itemId: it.id, itemNombre: it.nombre, texto: op.texto, precio: op.precio, fecha: op.fecha, esNuevoEnSesion: false });
+        });
+    });
+}
+
+function pintarSaboresFormulario(){
+    if (!nuevoSaborLista) return;
+    nuevoSaborLista.innerHTML = '';
+    if (!saboresFormulario.length) {
+        nuevoSaborLista.innerHTML = '<p style="opacity:.7;margin:6px 0 14px;">Todavía no hay sabores nuevos (de menos de 30 días).</p>';
+        return;
+    }
+    saboresFormulario.forEach((s, i) => {
+        const fila = document.createElement('div');
+        fila.className = 'noticia-form';
+        fila.style.marginBottom = '10px';
+        fila.innerHTML = `
+            <label>${s.itemNombre}</label>
+            <input type="text" data-campo="texto" placeholder="Nombre del sabor" value="${(s.texto || '').replace(/"/g, '&quot;')}">
+            <input type="text" data-campo="precio" placeholder="Precio (vacío = no cambia)" value="${s.precio !== null && s.precio !== undefined ? s.precio : ''}" style="margin-top:8px">
+            <button type="button" class="noticia-form-eliminar" style="margin-top:8px">🗑 Eliminar</button>
+        `;
+        fila.querySelector('[data-campo="texto"]').addEventListener('input', (e) => { saboresFormulario[i].texto = e.target.value; });
+        fila.querySelector('[data-campo="precio"]').addEventListener('input', (e) => {
+            saboresFormulario[i].precio = e.target.value.trim() === '' ? null : Number(e.target.value.trim());
+        });
+        fila.querySelector('.noticia-form-eliminar').addEventListener('click', () => {
+            saboresFormulario.splice(i, 1);
+            pintarSaboresFormulario();
+        });
+        nuevoSaborLista.appendChild(fila);
+    });
+}
 
 function cerrarModalSabor(){
     if (nuevoSaborModal) nuevoSaborModal.classList.remove('open');
@@ -2468,6 +2511,8 @@ if (agregarSaborBtn) {
         if (nuevoSaborNombre) nuevoSaborNombre.value = '';
         if (nuevoSaborPrecio) nuevoSaborPrecio.value = '';
         if (nuevoSaborProducto) nuevoSaborProducto.selectedIndex = 0;
+        construirSaboresFormulario();
+        pintarSaboresFormulario();
         if (nuevoSaborModal) nuevoSaborModal.classList.add('open');
     });
 }
@@ -2475,45 +2520,40 @@ if (nuevoSaborModalClose) nuevoSaborModalClose.addEventListener('click', cerrarM
 if (nuevoSaborCancelar) nuevoSaborCancelar.addEventListener('click', cerrarModalSabor);
 if (nuevoSaborModal) nuevoSaborModal.addEventListener('click', (e) => { if (e.target === nuevoSaborModal) cerrarModalSabor(); });
 
-if (nuevoSaborGuardar) {
-    nuevoSaborGuardar.addEventListener('click', async () => {
+// Botón "Agregar a la lista": solo agrega el renglón dentro del modal
+// (todavía no se guarda hasta darle "Guardar cambios").
+const nuevoSaborAgregarLista = document.getElementById('nuevo-sabor-agregar-lista');
+if (nuevoSaborAgregarLista) {
+    nuevoSaborAgregarLista.addEventListener('click', () => {
         const itemId = nuevoSaborProducto.value;
         const itemNombre = nuevoSaborProducto.options[nuevoSaborProducto.selectedIndex].textContent;
         const sabor = nuevoSaborNombre.value.trim();
-        if (!sabor) {
-            alert('Escribe el nombre del sabor nuevo.');
-            return;
-        }
+        if (!sabor) { alert('Escribe el nombre del sabor nuevo.'); return; }
         const precioTxt = nuevoSaborPrecio.value.trim();
         let precio = null;
         if (precioTxt) {
             precio = Number(precioTxt);
             if (isNaN(precio)) { alert('El precio debe ser un número, o déjalo vacío.'); return; }
         }
+        saboresFormulario.push({ itemId, itemNombre, texto: sabor, precio, fecha: new Date().toISOString(), esNuevoEnSesion: true });
+        nuevoSaborNombre.value = '';
+        nuevoSaborPrecio.value = '';
+        pintarSaboresFormulario();
+    });
+}
 
-        const tarjeta = document.querySelector(`[data-item-id="${itemId}"]`);
-        if (!tarjeta) { alert('No encontré esa bebida en el menú.'); return; }
-        const grupo = tarjeta.querySelector('.item-options .option-group');
+if (nuevoSaborGuardar) {
+    nuevoSaborGuardar.addEventListener('click', async () => {
         const overrides = { ...(contenidoServidor.menu || {}) };
-        const yaGuardadas = overrides[itemId] && overrides[itemId].opciones;
-        const afectaPrecio = precio !== null || (yaGuardadas ? !!overrides[itemId].opcionesConPrecio : (grupo && (grupo.getAttribute('data-affects-price') === 'true' || !!grupo.querySelector('[data-price]'))));
-
-        let opcionesActuales;
-        if (yaGuardadas) {
-            opcionesActuales = [...overrides[itemId].opciones];
-        } else if (grupo) {
-            opcionesActuales = [...grupo.querySelectorAll('.option-pill')].map((pill) => {
-                const input = pill.querySelector('input');
-                const span = pill.querySelector('span');
-                const texto = span ? span.textContent.replace(/\s*·\s*\$\d+(\.\d+)?/, '').replace(/\s*🆕\s*$/, '').trim() : '';
-                const p = input && input.getAttribute('data-price') ? Number(input.getAttribute('data-price')) : null;
-                return { texto, precio: p, fecha: pill.getAttribute('data-fecha') || undefined };
-            });
-        } else {
-            opcionesActuales = [];
-        }
-        opcionesActuales.push({ texto: sabor, precio, fecha: new Date().toISOString() });
-        overrides[itemId] = { ...(overrides[itemId] || {}), opciones: opcionesActuales, opcionesConPrecio: afectaPrecio };
+        SABORES_ITEMS.forEach((it) => {
+            const viejas = obtenerOpcionesDeItem(it.id).filter((op) => !esReciente(op.fecha));
+            const nuevasEditadas = saboresFormulario
+                .filter((s) => s.itemId === it.id && s.texto.trim())
+                .map((s) => ({ texto: s.texto.trim(), precio: s.precio, fecha: s.fecha }));
+            const opcionesFinales = viejas.concat(nuevasEditadas);
+            const opcionesConPrecio = (overrides[it.id] && overrides[it.id].opcionesConPrecio) || opcionesFinales.some((o) => o.precio !== null && o.precio !== undefined);
+            overrides[it.id] = { ...(overrides[it.id] || {}), opciones: opcionesFinales, opcionesConPrecio };
+        });
 
         nuevoSaborGuardar.disabled = true;
         const ok = await guardarContenidoEnServidor('menu', overrides);
@@ -2523,62 +2563,12 @@ if (nuevoSaborGuardar) {
         contenidoServidor.menu = overrides;
         aplicarOverridesMenu();
         cerrarModalSabor();
-        publicarNoticiaAutomatica('Nuevo sabor', `Nuevo sabor de ${itemNombre}: ${sabor}`, `Ya puedes pedir tu ${itemNombre} en sabor ${sabor}.`);
-        alert('Sabor agregado: ya se ve para todos los visitantes, y lo puedes editar o eliminar con el botón ✏️ de esa bebida.');
-    });
-}
 
-// =====================================================================
-// EDITAR / ELIMINAR SABORES Y OPCIONES DE UN PRODUCTO (nuevos o de siempre)
-// =====================================================================
-function editarOpcionesConPrecio(tarjeta, itemId){
-    const grupo = tarjeta.querySelector('.item-options .option-group');
-    if (!grupo) return;
-    const afectaPrecio = grupo.getAttribute('data-affects-price') === 'true' || !!grupo.querySelector('[data-price]');
-    const pillsActuales = [...grupo.querySelectorAll('.option-pill')];
-    const opcionesGuardadas = [];
-
-    for (const pill of pillsActuales) {
-        const input = pill.querySelector('input');
-        const span = pill.querySelector('span');
-        const precioActual = input ? input.getAttribute('data-price') : '';
-        const textoActual = span ? span.textContent.replace(/\s*·\s*\$\d+(\.\d+)?/, '').replace(/\s*🆕\s*$/, '').trim() : '';
-        const nuevoTexto = window.prompt('Opción (déjala igual, edítala, o bórrala dejando el cuadro vacío para eliminarla):', textoActual);
-        if (nuevoTexto === null) return; // canceló todo, no se guarda nada
-        if (!nuevoTexto.trim()) continue; // se elimina esta opción
-
-        let nuevoPrecio = null;
-        if (afectaPrecio) {
-            const nuevoPrecioTxt = window.prompt(`Precio para "${nuevoTexto.trim()}" (solo el número):`, precioActual || '');
-            if (nuevoPrecioTxt === null) return;
-            nuevoPrecio = Number(nuevoPrecioTxt.trim());
-            if (isNaN(nuevoPrecio)) { alert('El precio debe ser un número. No se guardó ningún cambio.'); return; }
+        const agregadosEnSesion = saboresFormulario.filter((s) => s.esNuevoEnSesion && s.texto.trim());
+        for (const s of agregadosEnSesion) {
+            await publicarNoticiaAutomatica('Nuevo sabor', `Nuevo sabor de ${s.itemNombre}: ${s.texto.trim()}`, `Ya puedes pedir tu ${s.itemNombre} en sabor ${s.texto.trim()}.`);
         }
-        opcionesGuardadas.push({ texto: nuevoTexto.trim(), precio: nuevoPrecio, fecha: pill.getAttribute('data-fecha') || undefined });
-    }
-
-    // Permite agregar opciones nuevas al final, una por una.
-    for (;;) {
-        const textoNuevo = window.prompt('¿Agregar otra opción? Escribe su nombre (déjalo vacío para terminar):');
-        if (!textoNuevo || !textoNuevo.trim()) break;
-        let precioNuevo = null;
-        if (afectaPrecio) {
-            const precioTxt = window.prompt(`Precio para "${textoNuevo.trim()}" (solo el número):`);
-            if (precioTxt === null) continue;
-            precioNuevo = Number(precioTxt.trim());
-            if (isNaN(precioNuevo)) { alert('El precio debe ser un número. No se agregó esa opción.'); continue; }
-        }
-        opcionesGuardadas.push({ texto: textoNuevo.trim(), precio: precioNuevo, fecha: new Date().toISOString() });
-    }
-
-    const overrides = { ...(contenidoServidor.menu || {}) };
-    overrides[itemId] = { ...(overrides[itemId] || {}), opciones: opcionesGuardadas, opcionesConPrecio: afectaPrecio };
-
-    guardarContenidoEnServidor('menu', overrides).then((ok) => {
-        if (!ok) return;
-        contenidoServidor.menu = overrides;
-        aplicarOverridesMenu();
-        alert('Sabores actualizados: ya se ven así para todos los visitantes.');
+        alert('Cambios guardados: ya se ven así para todos los visitantes.');
     });
 }
 
@@ -2614,12 +2604,12 @@ function aplicarOverridesMenuConOpciones(){
                 const label = document.createElement('label');
                 label.className = 'option-pill' + (esReciente(op.fecha) ? ' sabor-nuevo' : '');
                 if (op.fecha) label.setAttribute('data-fecha', op.fecha);
-                const badge = esReciente(op.fecha) ? ' 🆕' : '';
+                const badgeHtml = esReciente(op.fecha) ? '<span class="pill-badge-new">Nuevo</span>' : '';
                 const marcado = i === 0 ? ' checked' : '';
                 if (cambio.opcionesConPrecio && op.precio !== null && op.precio !== undefined) {
-                    label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${op.texto}" data-price="${op.precio}"${marcado}><span>${op.texto} · $${op.precio}${badge}</span>`;
+                    label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${op.texto}" data-price="${op.precio}"${marcado}><span>${op.texto} · $${op.precio}</span>${badgeHtml}`;
                 } else {
-                    label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${op.texto}"${marcado}><span>${op.texto}${badge}</span>`;
+                    label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${op.texto}"${marcado}><span>${op.texto}</span>${badgeHtml}`;
                 }
                 grupo.appendChild(label);
             });
