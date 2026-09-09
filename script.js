@@ -2151,3 +2151,17 @@ if (infoModalGuardar) {
         alert('Información actualizada: ya se ve así para todos los visitantes.');
     });
 }
+
+// =====================================================================
+// MENÚ MÓVIL: cerrar al elegir una sección + resaltar la tocada
+// =====================================================================
+const menuToggleCheckbox = document.getElementById('menu-toggle');
+document.querySelectorAll('.navbar a').forEach((link) => {
+    link.addEventListener('click', () => {
+        link.classList.add('nav-link-tocado');
+        setTimeout(() => link.classList.remove('nav-link-tocado'), 500);
+        if (menuToggleCheckbox && menuToggleCheckbox.checked) {
+            setTimeout(() => { menuToggleCheckbox.checked = false; }, 180);
+        }
+    });
+});

@@ -2676,3 +2676,14 @@ body.dark-mode .transferencia-nota {
     cursor: pointer;
     margin-right: auto;
 }
+
+/* ---- Menú móvil: resaltar el enlace tocado ---- */
+.navbar a.nav-link-tocado {
+    color: #ff9000 !important;
+    animation: nav-link-pop 0.4s ease;
+}
+@keyframes nav-link-pop {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+}
