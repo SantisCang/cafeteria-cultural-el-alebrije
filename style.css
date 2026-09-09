@@ -31,8 +31,11 @@ section[id], header[id] {
     min-height: 70vh;
     padding-top: 110px;
     position: relative;
-    z-index: 0;
     overflow: hidden;
+    background-image: url('imagenes/bg.png');
+    background-repeat: no-repeat;
+    background-position: right top;
+    background-size: 700px auto;
 }
 .menu {
     position: fixed;
@@ -433,11 +436,7 @@ body.dark-mode .theme-toggle {
     border-color: #ff9000 !important;
 }
 .bg {
-    position: absolute;
-    width: 700px;
-    top: 0;
-    right: 0;
-    z-index: -1;
+    display: none;
 }
 .header-content{
     display: flex;
@@ -2335,14 +2334,12 @@ body.dark-mode .eyebrow {
 body.dark-mode .header {
     background-color: #1b140f;
 }
-body.dark-mode .bg,
 body.dark-mode .bg-2 {
     opacity: 0.35;
     filter: brightness(0.7) saturate(0.8);
 }
-body.dark-mode .header .bg {
-    opacity: 0.85;
-    filter: brightness(1) saturate(1.1);
+body.dark-mode .header {
+    background-color: #1b140f;
 }
 body.dark-mode .header-txt h1 {
     color: #f6efe4;
