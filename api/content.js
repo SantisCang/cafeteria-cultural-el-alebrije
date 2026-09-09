@@ -9,7 +9,7 @@
 
 import { kv } from '@vercel/kv';
 
-const TIPOS_VALIDOS = ['noticias', 'promociones', 'menu', 'podcast', 'videos', 'recetas', 'inicio', 'info', 'menu-nuevos'];
+const TIPOS_VALIDOS = ['noticias', 'promociones', 'menu', 'podcast', 'videos', 'recetas', 'inicio', 'info', 'menu-nuevos', 'menu-sabores'];
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
         try {
-            const [noticias, promociones, menu, podcast, videos, recetas, inicio, info, menuNuevos] = await Promise.all([
+            const [noticias, promociones, menu, podcast, videos, recetas, inicio, info, menuNuevos, menuSabores] = await Promise.all([
                 kv.get('contenido:noticias'),
                 kv.get('contenido:promociones'),
                 kv.get('contenido:menu'),
@@ -32,7 +32,8 @@ export default async function handler(req, res) {
                 kv.get('contenido:recetas'),
                 kv.get('contenido:inicio'),
                 kv.get('contenido:info'),
-                kv.get('contenido:menu-nuevos')
+                kv.get('contenido:menu-nuevos'),
+                kv.get('contenido:menu-sabores')
             ]);
             res.status(200).json({
                 noticias: noticias || null,
@@ -43,7 +44,8 @@ export default async function handler(req, res) {
                 recetas: recetas || null,
                 inicio: inicio || null,
                 info: info || null,
-                menuNuevos: menuNuevos || null
+                menuNuevos: menuNuevos || null,
+                menuSabores: menuSabores || null
             });
         } catch (err) {
             console.error('Error leyendo contenido:', err);

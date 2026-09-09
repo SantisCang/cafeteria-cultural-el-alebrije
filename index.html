@@ -724,6 +724,7 @@
             
             <div class="menu-agregar-producto solo-admin" id="agregar-bebidas-wrap" hidden>
                 <button type="button" class="noticias-modal-agregar" id="agregar-bebidas-btn">+ Agregar bebidas</button>
+                <button type="button" class="noticias-modal-agregar" id="agregar-sabor-btn">+ Agregar sabor nuevo</button>
             </div>
 </div>
 
@@ -1375,6 +1376,15 @@
                 del menú y se ve para todos los visitantes al guardar.
             </p>
             <div class="noticia-form">
+                <label id="nuevo-producto-subcategoria-label" hidden>¿Dónde va?</label>
+                <select id="nuevo-producto-subcategoria" hidden>
+                    <option value="cafe-caliente-tradicionales">Café Caliente · Tradicionales</option>
+                    <option value="cafe-caliente-culturales">Café Caliente · Culturales</option>
+                    <option value="cafe-frio">Café Frío</option>
+                    <option value="frappe">Frappé</option>
+                    <option value="te">Té</option>
+                    <option value="otra">Otra / no importa</option>
+                </select>
                 <label>Nombre</label>
                 <input type="text" id="nuevo-producto-nombre" placeholder="Ej. Té helado">
                 <label style="margin-top:10px">Descripción</label>

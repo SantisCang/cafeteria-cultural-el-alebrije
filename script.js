@@ -45,7 +45,7 @@ const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
 const API_BASE_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api';
 
 let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null, menuNuevos: null };
+let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null, menuNuevos: null, menuSabores: null };
 
 function mostrarBotonesAdmin(mostrar){
     document.querySelectorAll('.solo-admin').forEach((el) => {
@@ -1855,6 +1855,7 @@ cargaContenidoServidor.then(() => {
     aplicarOverridesInfo();
     aplicarOverridesMenu();
     pintarMenuNuevos();
+    pintarSaboresNuevos();
     inyectarBotonesEdicionMenu();
     if (modoAdmin) mostrarBotonesAdmin(true);
 });
@@ -2171,6 +2172,67 @@ document.querySelectorAll('.navbar a').forEach((link) => {
 // AGREGAR PRODUCTOS NUEVOS (Bebidas, Snacks, Desayunos, Comida Corrida)
 // =====================================================================
 const CATEGORIAS_MENU = ['bebidas', 'snacks', 'desayunos', 'corrida'];
+const DIAS_NUEVO = 30; // cuánto dura resaltado un producto/sabor como "Nuevo"
+
+const NOMBRE_CATEGORIA_TAB = {
+    bebidas: 'bebida', snacks: 'snack', desayunos: 'desayuno', corrida: 'comida corrida'
+};
+
+// Dónde (dentro de la pestaña de Bebidas) va cada subcategoría al agregar
+// un producto nuevo. El selector busca el <h4>/<h5> correspondiente.
+const SUBCATEGORIAS_BEBIDAS = {
+    'cafe-caliente-tradicionales': { h4: 'Café Caliente', h5: 'Tradicionales' },
+    'cafe-caliente-culturales': { h4: 'Café Caliente', h5: 'Culturales' },
+    'cafe-frio': { h4: 'Café Frío', h5: null },
+    'frappe': { h4: 'Frappé', h5: null },
+    'te': { h4: 'Té', h5: null }
+};
+
+function esReciente(fechaIso){
+    if (!fechaIso) return false;
+    const dias = (Date.now() - new Date(fechaIso).getTime()) / (1000 * 60 * 60 * 24);
+    return dias >= 0 && dias <= DIAS_NUEVO;
+}
+
+function fechaCortaHoy(){
+    try {
+        return new Date().toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
+    } catch (err) { return 'Hoy'; }
+}
+
+// Publica automáticamente una noticia cuando se agrega algo nuevo al menú.
+async function publicarNoticiaAutomatica(etiqueta, titulo, descripcion){
+    try {
+        const actuales = [...obtenerNoticiasActuales()];
+        actuales.unshift({ fecha: fechaCortaHoy(), etiqueta, titulo, descripcion });
+        const ok = await guardarContenidoEnServidor('noticias', actuales);
+        if (ok) {
+            contenidoServidor.noticias = actuales;
+            pintarNoticias();
+        }
+    } catch (err) { /* si falla la noticia, no bloquea el guardado del producto */ }
+}
+
+// Busca dentro del panel de Bebidas el <div class="menu-sub"> que corresponde
+// a la subcategoría elegida, para insertar ahí el producto nuevo.
+function buscarContenedorSubcategoria(subKey){
+    const def = SUBCATEGORIAS_BEBIDAS[subKey];
+    if (!def) return null;
+    const panel = document.getElementById('panel-bebidas');
+    if (!panel) return null;
+    const categorias = [...panel.querySelectorAll('.menu-category')];
+    const categoria = categorias.find((c) => {
+        const h4 = c.querySelector('h4');
+        return h4 && h4.textContent.trim() === def.h4;
+    });
+    if (!categoria) return null;
+    if (!def.h5) return categoria.querySelector('.menu-sub');
+    const subs = [...categoria.querySelectorAll('.menu-sub')];
+    return subs.find((s) => {
+        const h5 = s.querySelector('h5');
+        return h5 && h5.textContent.trim() === def.h5;
+    }) || null;
+}
 
 function obtenerMenuNuevosActual(){
     return contenidoServidor.menuNuevos || { bebidas: [], snacks: [], desayunos: [], corrida: [] };
@@ -2186,9 +2248,10 @@ function crearTarjetaMenuSimple(item, itemId){
     div.setAttribute('data-base-price', item.precio);
     div.setAttribute('data-image', item.imagen || 'imagenes/logo.png');
     div.setAttribute('data-item-id', itemId);
+    const badge = esReciente(item.fecha) ? '<span class="badge-nuevo">🆕 Nuevo</span>' : '';
     div.innerHTML = `
         <img class="menu-item-thumb" src="${item.imagen || 'imagenes/logo.png'}" alt="">
-        <div class="menu-item-head"><span class="menu-item-name">${item.nombre || ''}</span><span class="menu-item-price" data-price-display>$${item.precio}</span></div>
+        <div class="menu-item-head"><span class="menu-item-name">${item.nombre || ''}${badge}</span><span class="menu-item-price" data-price-display>$${item.precio}</span></div>
         <p class="menu-item-desc">${item.descripcion || ''}</p>
         <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
     `;
@@ -2247,7 +2310,12 @@ function pintarMenuNuevos(){
             const itemId = `nuevo-${cat}-${i}`;
             if (document.querySelector(`[data-item-id="${itemId}"]`)) return; // ya está pintado
             const card = crearTarjetaMenuSimple(item, itemId);
-            wrap.insertAdjacentElement('beforebegin', card);
+            const contenedorSub = cat === 'bebidas' ? buscarContenedorSubcategoria(item.subcategoria) : null;
+            if (contenedorSub) {
+                contenedorSub.appendChild(card);
+            } else {
+                wrap.insertAdjacentElement('beforebegin', card);
+            }
             configurarNuevaTarjetaCarrito(card);
         });
     });
@@ -2263,6 +2331,8 @@ const nuevoProductoImagen = document.getElementById('nuevo-producto-imagen');
 const nuevoProductoPreview = document.getElementById('nuevo-producto-preview');
 const nuevoProductoPreviewWrap = document.getElementById('nuevo-producto-preview-wrap');
 const nuevoProductoGuardar = document.getElementById('nuevo-producto-guardar');
+const nuevoProductoSubcategoria = document.getElementById('nuevo-producto-subcategoria');
+const nuevoProductoSubcategoriaLabel = document.getElementById('nuevo-producto-subcategoria-label');
 let nuevoProductoCategoriaActual = null;
 let nuevoProductoImagenBase64 = '';
 
@@ -2277,6 +2347,9 @@ CATEGORIAS_MENU.forEach((cat) => {
         if (nuevoProductoPrecio) nuevoProductoPrecio.value = '';
         if (nuevoProductoImagen) nuevoProductoImagen.value = '';
         if (nuevoProductoPreviewWrap) nuevoProductoPreviewWrap.hidden = true;
+        const esBebida = cat === 'bebidas';
+        if (nuevoProductoSubcategoria) nuevoProductoSubcategoria.hidden = !esBebida;
+        if (nuevoProductoSubcategoriaLabel) nuevoProductoSubcategoriaLabel.hidden = !esBebida;
         nuevoProductoModal.classList.add('open');
     });
 });
@@ -2310,7 +2383,9 @@ if (nuevoProductoGuardar) {
             nombre,
             descripcion: nuevoProductoDescripcion.value.trim(),
             precio,
-            imagen: nuevoProductoImagenBase64
+            imagen: nuevoProductoImagenBase64,
+            fecha: new Date().toISOString(),
+            subcategoria: nuevoProductoCategoriaActual === 'bebidas' && nuevoProductoSubcategoria ? nuevoProductoSubcategoria.value : null
         };
 
         const datosActuales = obtenerMenuNuevosActual();
@@ -2330,7 +2405,93 @@ if (nuevoProductoGuardar) {
         contenidoServidor.menuNuevos = copia;
         pintarMenuNuevos();
         nuevoProductoModal.classList.remove('open');
+        const etiquetaTab = NOMBRE_CATEGORIA_TAB[nuevoProductoCategoriaActual] || 'producto';
+        publicarNoticiaAutomatica('Nuevo', `Nuevo en el menú: ${nombre}`, `Ya puedes pedir ${nombre}, nuestra nueva ${etiquetaTab}. ${nuevoItem.descripcion || ''}`.trim());
         alert('Producto agregado: ya se ve para todos los visitantes.');
+    });
+}
+
+// =====================================================================
+// AGREGAR SABOR NUEVO a una bebida ya existente (Frappé, Té, Atole, Capuchino, etc.)
+// =====================================================================
+function obtenerSaboresNuevosActuales(){
+    return contenidoServidor.menuSabores || [];
+}
+
+// Pinta en el menú los sabores nuevos guardados: agrega una opción (pill)
+// más al grupo de opciones del producto correspondiente.
+function pintarSaboresNuevos(){
+    const sabores = obtenerSaboresNuevosActuales();
+    sabores.forEach((s, i) => {
+        const marcaId = `sabor-nuevo-${i}`;
+        document.querySelectorAll(`[data-item-id="${s.itemId}"]`).forEach((tarjeta) => {
+            if (tarjeta.querySelector(`[data-sabor-nuevo-id="${marcaId}"]`)) return; // ya está pintado
+            let grupo = tarjeta.querySelector('.item-options .option-group');
+            if (!grupo) {
+                const opciones = document.createElement('div');
+                opciones.className = 'item-options';
+                opciones.innerHTML = '<div class="option-group"></div>';
+                const desc = tarjeta.querySelector('.menu-item-desc');
+                (desc || tarjeta.querySelector('.menu-item-head')).insertAdjacentElement('afterend', opciones);
+                grupo = opciones.querySelector('.option-group');
+            }
+            const nombreGrupo = grupo.querySelector('input') ? grupo.querySelector('input').name : `${s.itemId}-sabor-nuevo`;
+            const label = document.createElement('label');
+            label.className = 'option-pill' + (esReciente(s.fecha) ? ' sabor-nuevo' : '');
+            label.setAttribute('data-sabor-nuevo-id', marcaId);
+            const badge = esReciente(s.fecha) ? ' 🆕' : '';
+            if (s.precio) {
+                grupo.setAttribute('data-affects-price', 'true');
+                label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${s.sabor}" data-price="${s.precio}"><span>${s.sabor} · $${s.precio}${badge}</span>`;
+            } else {
+                label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${s.sabor}"><span>${s.sabor}${badge}</span>`;
+            }
+            grupo.appendChild(label);
+        });
+    });
+}
+
+const agregarSaborBtn = document.getElementById('agregar-sabor-btn');
+if (agregarSaborBtn) {
+    agregarSaborBtn.addEventListener('click', async () => {
+        const productos = [...document.querySelectorAll('#panel-bebidas .menu-item[data-item-id]')];
+        const nombres = productos.map((p) => p.getAttribute('data-name')).join('\n');
+        const nombreProducto = window.prompt(`¿A qué bebida le quieres agregar el sabor nuevo? Escribe el nombre exacto tal como aparece:\n\n${nombres}`);
+        if (!nombreProducto) return;
+        const tarjeta = productos.find((p) => (p.getAttribute('data-name') || '').trim().toLowerCase() === nombreProducto.trim().toLowerCase());
+        if (!tarjeta) {
+            alert('No encontré ese producto exactamente con ese nombre. Inténtalo de nuevo copiando el nombre tal cual aparece en el menú.');
+            return;
+        }
+        const sabor = window.prompt('¿Cuál es el nombre del sabor nuevo? (Ej. Rompope)');
+        if (!sabor || !sabor.trim()) return;
+        const tieneOpcionesConPrecio = !!tarjeta.querySelector('.item-options [data-price]');
+        let precio = null;
+        if (tieneOpcionesConPrecio) {
+            const precioTxt = window.prompt(`Precio para "${sabor.trim()}" (solo el número):`);
+            if (precioTxt === null) return;
+            precio = Number(precioTxt.trim());
+            if (isNaN(precio)) { alert('El precio debe ser un número.'); return; }
+        }
+
+        const nuevoSabor = {
+            itemId: tarjeta.getAttribute('data-item-id'),
+            itemNombre: tarjeta.getAttribute('data-name'),
+            sabor: sabor.trim(),
+            precio,
+            fecha: new Date().toISOString()
+        };
+        const copia = [...obtenerSaboresNuevosActuales(), nuevoSabor];
+
+        agregarSaborBtn.disabled = true;
+        const ok = await guardarContenidoEnServidor('menu-sabores', copia);
+        agregarSaborBtn.disabled = false;
+        if (!ok) return;
+
+        contenidoServidor.menuSabores = copia;
+        pintarSaboresNuevos();
+        publicarNoticiaAutomatica('Nuevo sabor', `Nuevo sabor de ${nuevoSabor.itemNombre}: ${nuevoSabor.sabor}`, `Ya puedes pedir tu ${nuevoSabor.itemNombre} en sabor ${nuevoSabor.sabor}.`);
+        alert('Sabor agregado: ya se ve para todos los visitantes.');
     });
 }
 

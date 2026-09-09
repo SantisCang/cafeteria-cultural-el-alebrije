@@ -1623,6 +1623,28 @@ p {
     white-space: nowrap;
     flex-shrink: 0;
 }
+.badge-nuevo {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #fff;
+    background: linear-gradient(135deg, #ff4d4d, #ff9000);
+    padding: 3px 9px;
+    border-radius: 20px;
+    vertical-align: middle;
+    animation: badge-nuevo-pulso 1.8s ease-in-out infinite;
+}
+@keyframes badge-nuevo-pulso {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+.option-pill.sabor-nuevo span {
+    background: linear-gradient(135deg, rgba(255,77,77,0.15), rgba(255,144,0,0.15));
+    border: 1px solid #ff9000;
+}
 .menu-item-desc {
     color: #5e5e5e;
     font-size: 14px;
