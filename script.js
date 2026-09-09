@@ -185,7 +185,10 @@ function pintarNoticias(){
     const vacio = document.getElementById('noticias-vacio');
     if (!grid) return;
 
-    const noticias = obtenerNoticiasActuales();
+    // Las noticias automáticas (agregadas solas al crear un producto/sabor
+    // nuevo) se ocultan solas después de 1 día completo, como si nunca
+    // hubieran estado. Las noticias puestas a mano nunca se ocultan.
+    const noticias = obtenerNoticiasActuales().filter((n) => !n.automatica || esReciente(n.creadaEn));
     grid.innerHTML = '';
 
     if (!noticias.length) {
@@ -2179,7 +2182,7 @@ document.querySelectorAll('.navbar a').forEach((link) => {
 // AGREGAR PRODUCTOS NUEVOS (Bebidas, Snacks, Desayunos, Comida Corrida)
 // =====================================================================
 const CATEGORIAS_MENU = ['bebidas', 'snacks', 'desayunos', 'corrida'];
-const DIAS_NUEVO = 30; // cuánto dura resaltado un producto/sabor como "Nuevo"
+const DIAS_NUEVO = 1; // cuánto dura resaltado un producto/sabor como "Nuevo" (1 día completo)
 
 const NOMBRE_CATEGORIA_TAB = {
     bebidas: 'bebida', snacks: 'snack', desayunos: 'desayuno', corrida: 'comida corrida'
@@ -2208,10 +2211,11 @@ function fechaCortaHoy(){
 }
 
 // Publica automáticamente una noticia cuando se agrega algo nuevo al menú.
+// Se marca con "automatica" + fecha real para que se borre sola en 1 día.
 async function publicarNoticiaAutomatica(etiqueta, titulo, descripcion){
     try {
         const actuales = [...obtenerNoticiasActuales()];
-        actuales.unshift({ fecha: fechaCortaHoy(), etiqueta, titulo, descripcion });
+        actuales.unshift({ fecha: fechaCortaHoy(), etiqueta, titulo, descripcion, automatica: true, creadaEn: new Date().toISOString() });
         const ok = await guardarContenidoEnServidor('noticias', actuales);
         if (ok) {
             contenidoServidor.noticias = actuales;
