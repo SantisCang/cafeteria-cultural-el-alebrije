@@ -1635,19 +1635,11 @@ p {
     padding: 3px 9px;
     border-radius: 20px;
     vertical-align: middle;
+    animation: badge-nuevo-pulso 1.8s ease-in-out infinite;
 }
-.pill-badge-new {
-    display: inline-block;
-    margin-left: 6px;
-    font-size: 9px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #fff;
-    background: #2f8fff;
-    padding: 2px 7px;
-    border-radius: 7px;
-    vertical-align: middle;
+@keyframes badge-nuevo-pulso {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
 }
 .option-pill.sabor-nuevo span {
     background: linear-gradient(135deg, rgba(255,77,77,0.15), rgba(255,144,0,0.15));

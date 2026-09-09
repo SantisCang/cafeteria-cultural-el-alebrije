@@ -724,7 +724,7 @@
             
             <div class="menu-agregar-producto solo-admin" id="agregar-bebidas-wrap" hidden>
                 <button type="button" class="noticias-modal-agregar" id="agregar-bebidas-btn">+ Agregar bebidas</button>
-                <button type="button" class="noticias-modal-agregar" id="agregar-sabor-btn">Administrar sabores nuevos</button>
+                <button type="button" class="noticias-modal-agregar" id="agregar-sabor-btn">+ Agregar sabor nuevo</button>
             </div>
 </div>
 
@@ -1238,17 +1238,7 @@
                         <input type="radio" name="pedido-pago" value="Transferencia">
                         <span>🏦 Transferencia</span>
                     </label>
-                    <label class="pedido-modal-pill">
-                        <input type="radio" name="pedido-pago" value="MercadoPago">
-                        <span>💳 Tarjeta / SPEI (Mercado Pago)</span>
-                    </label>
                 </div>
-            </div>
-
-            <div class="pedido-modal-group transferencia-datos" id="pedido-pago-mercadopago" hidden>
-                <span class="pedido-modal-label">💳 Vas a pagar con Mercado Pago</span>
-                <p class="transferencia-nota">Al dar clic en "Pagar con Mercado Pago" se abrirá la pantalla segura de Mercado Pago con el total exacto de tu pedido. Puedes pagar con tarjeta de cualquier banco (BBVA, Santander, Banorte, Banco Azteca, etc.), transferencia SPEI o en efectivo en OXXO.</p>
-                <p class="transferencia-nota" id="mercadopago-error" hidden>❌ No pudimos abrir Mercado Pago. Intenta de nuevo o elige otra forma de pago.</p>
             </div>
 
             <div class="pedido-modal-group" id="pedido-pago-efectivo">
@@ -1272,7 +1262,13 @@
                 <p class="pedido-modal-hint" id="pedido-nombre-error">Escribe tu nombre para poder identificar tu pago 🙏</p>
 
                 <p class="transferencia-nota">💡 Usa el folio <strong id="pedido-folio-transferencia">—</strong> como concepto o referencia de tu transferencia. Así, además del comprobante, podemos ubicar tu pago directo en el banco.</p>
-                <p class="transferencia-nota">📸 No olvides enviarnos tu comprobante de transferencia por este mismo chat de WhatsApp.</p>
+
+                <label class="pedido-modal-label transferencia-nombre-label" for="pedido-captura-transferencia">📸 Adjunta tu captura del comprobante (obligatorio)</label>
+                <input type="file" id="pedido-captura-transferencia" accept="image/*">
+                <p id="pedido-captura-preview-wrap" hidden style="margin-top:8px;">
+                    <img id="pedido-captura-preview" style="max-width:120px; border-radius:8px;" alt="Vista previa del comprobante">
+                </p>
+                <p class="pedido-modal-hint" id="pedido-captura-error">Adjunta la captura de tu comprobante para poder continuar 🙏</p>
 
                 <label class="pedido-confirmo">
                     <input type="checkbox" id="pedido-confirmo-transferencia">
@@ -1365,39 +1361,6 @@
         </div>
         <p class="footer-copy">© 2026 Café Cultural El Alebrije. Todos los derechos reservados.</p>
     </footer>
-
-    <div class="noticias-modal" id="nuevo-sabor-modal">
-        <div class="noticias-modal-inner">
-            <button class="noticias-modal-close" id="nuevo-sabor-modal-close" aria-label="Cerrar">✕</button>
-            <h3>🍹 Administrar sabores nuevos</h3>
-            <p class="noticias-modal-sub">
-                Aquí solo aparecen los sabores agregados hace menos de 30 días: puedes editar su nombre/precio o eliminarlos. Los sabores de siempre del menú no se muestran aquí.
-            </p>
-            <div id="nuevo-sabor-lista"></div>
-            <div class="noticia-form" style="margin-top:6px;">
-                <label>Agregar un sabor nuevo a la lista</label>
-                <label style="margin-top:10px">Bebida</label>
-                <select id="nuevo-sabor-producto">
-                    <option value="capuchino">Capuchino</option>
-                    <option value="capuchino-frio">Capuchino Frío</option>
-                    <option value="latte">Latte</option>
-                    <option value="latte-frio">Latte Frío</option>
-                    <option value="atole">Atole</option>
-                    <option value="frappe">Frappé</option>
-                    <option value="te">Té</option>
-                </select>
-                <label style="margin-top:10px">Nombre del sabor nuevo</label>
-                <input type="text" id="nuevo-sabor-nombre" placeholder="Ej. Rompope">
-                <label style="margin-top:10px">Precio (déjalo vacío si no cambia el precio)</label>
-                <input type="text" id="nuevo-sabor-precio" placeholder="Ej. 50">
-                <button type="button" class="noticias-modal-agregar" id="nuevo-sabor-agregar-lista" style="margin-top:12px;">+ Agregar a la lista</button>
-            </div>
-            <div class="noticias-modal-acciones">
-                <button type="button" class="pedido-modal-enviar" id="nuevo-sabor-guardar">Guardar cambios</button>
-                <button type="button" class="noticias-modal-agregar" id="nuevo-sabor-cancelar">Cancelar</button>
-            </div>
-        </div>
-    </div>
 
     <script src="script.js" defer></script>
     <div class="noticias-modal" id="nuevo-producto-modal">
