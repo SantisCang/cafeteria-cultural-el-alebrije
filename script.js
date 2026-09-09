@@ -1675,15 +1675,15 @@ function inyectarBotonesEdicionMenu(){
     document.querySelectorAll('[data-item-id]').forEach((tarjeta) => {
         if (tarjeta.querySelector('.menu-edit-btn')) return; // ya tiene botón
 
-        const tieneOpcionesConPrecio = !!tarjeta.querySelector('.item-options [data-price], .item-options [data-affects-price]');
+        const tieneOpciones = !!tarjeta.querySelector('.item-options .option-group .option-pill');
         const itemId = tarjeta.getAttribute('data-item-id');
 
         const boton = document.createElement('button');
         boton.type = 'button';
         boton.className = 'menu-edit-btn solo-admin';
         boton.hidden = !modoAdmin;
-        boton.title = tieneOpcionesConPrecio
-            ? 'Editar los precios de cada opción (sabor/tamaño)'
+        boton.title = tieneOpciones
+            ? 'Editar o eliminar los sabores/opciones de este producto'
             : 'Editar nombre, descripción o precio';
         boton.textContent = '✏️';
         boton.style.cssText = 'margin-left:6px;cursor:pointer;border:none;background:transparent;font-size:0.9rem;';
@@ -1692,7 +1692,7 @@ function inyectarBotonesEdicionMenu(){
             e.preventDefault();
             e.stopPropagation();
 
-            if (tieneOpcionesConPrecio) {
+            if (tieneOpciones) {
                 editarOpcionesConPrecio(tarjeta, itemId);
                 return;
             }
@@ -1855,7 +1855,6 @@ cargaContenidoServidor.then(() => {
     aplicarOverridesInfo();
     aplicarOverridesMenu();
     pintarMenuNuevos();
-    pintarSaboresNuevos();
     inyectarBotonesEdicionMenu();
     if (modoAdmin) mostrarBotonesAdmin(true);
 });
@@ -2492,61 +2491,99 @@ if (nuevoSaborGuardar) {
             if (isNaN(precio)) { alert('El precio debe ser un número, o déjalo vacío.'); return; }
         }
 
-        const nuevoSabor = { itemId, itemNombre, sabor, precio, fecha: new Date().toISOString() };
-        const copia = [...obtenerSaboresNuevosActuales(), nuevoSabor];
+        const tarjeta = document.querySelector(`[data-item-id="${itemId}"]`);
+        if (!tarjeta) { alert('No encontré esa bebida en el menú.'); return; }
+        const grupo = tarjeta.querySelector('.item-options .option-group');
+        const overrides = { ...(contenidoServidor.menu || {}) };
+        const yaGuardadas = overrides[itemId] && overrides[itemId].opciones;
+        const afectaPrecio = precio !== null || (yaGuardadas ? !!overrides[itemId].opcionesConPrecio : (grupo && (grupo.getAttribute('data-affects-price') === 'true' || !!grupo.querySelector('[data-price]'))));
+
+        let opcionesActuales;
+        if (yaGuardadas) {
+            opcionesActuales = [...overrides[itemId].opciones];
+        } else if (grupo) {
+            opcionesActuales = [...grupo.querySelectorAll('.option-pill')].map((pill) => {
+                const input = pill.querySelector('input');
+                const span = pill.querySelector('span');
+                const texto = span ? span.textContent.replace(/\s*·\s*\$\d+(\.\d+)?/, '').replace(/\s*🆕\s*$/, '').trim() : '';
+                const p = input && input.getAttribute('data-price') ? Number(input.getAttribute('data-price')) : null;
+                return { texto, precio: p, fecha: pill.getAttribute('data-fecha') || undefined };
+            });
+        } else {
+            opcionesActuales = [];
+        }
+        opcionesActuales.push({ texto: sabor, precio, fecha: new Date().toISOString() });
+        overrides[itemId] = { ...(overrides[itemId] || {}), opciones: opcionesActuales, opcionesConPrecio: afectaPrecio };
 
         nuevoSaborGuardar.disabled = true;
-        const ok = await guardarContenidoEnServidor('menu-sabores', copia);
+        const ok = await guardarContenidoEnServidor('menu', overrides);
         nuevoSaborGuardar.disabled = false;
         if (!ok) return;
 
-        contenidoServidor.menuSabores = copia;
-        pintarSaboresNuevos();
+        contenidoServidor.menu = overrides;
+        aplicarOverridesMenu();
         cerrarModalSabor();
         publicarNoticiaAutomatica('Nuevo sabor', `Nuevo sabor de ${itemNombre}: ${sabor}`, `Ya puedes pedir tu ${itemNombre} en sabor ${sabor}.`);
-        alert('Sabor agregado: ya se ve para todos los visitantes.');
+        alert('Sabor agregado: ya se ve para todos los visitantes, y lo puedes editar o eliminar con el botón ✏️ de esa bebida.');
     });
 }
 
 // =====================================================================
-// EDITAR PRODUCTOS CON VARIAS OPCIONES DE PRECIO (sabores/tamaños)
+// EDITAR / ELIMINAR SABORES Y OPCIONES DE UN PRODUCTO (nuevos o de siempre)
 // =====================================================================
-// Para estos, en vez de bloquear la edición, se pregunta uno por uno el
-// nombre y precio de cada opción (rápido de usar desde el panel).
 function editarOpcionesConPrecio(tarjeta, itemId){
-    const inputsPrecio = [...tarjeta.querySelectorAll('.item-options [data-price]')];
-    if (!inputsPrecio.length) return;
-
-    const overrides = { ...(contenidoServidor.menu || {}) };
+    const grupo = tarjeta.querySelector('.item-options .option-group');
+    if (!grupo) return;
+    const afectaPrecio = grupo.getAttribute('data-affects-price') === 'true' || !!grupo.querySelector('[data-price]');
+    const pillsActuales = [...grupo.querySelectorAll('.option-pill')];
     const opcionesGuardadas = [];
 
-    for (const input of inputsPrecio) {
-        const span = input.closest('label') ? input.closest('label').querySelector('span') : null;
-        const textoActual = span ? span.textContent.trim() : '';
-        const nuevoTexto = window.prompt(`Opción (texto que ve el cliente):`, textoActual);
-        if (nuevoTexto === null) return; // canceló
-        const precioActual = input.getAttribute('data-price');
-        const nuevoPrecioTxt = window.prompt(`Precio para "${nuevoTexto}" (solo el número):`, precioActual);
-        if (nuevoPrecioTxt === null) return;
-        const nuevoPrecio = Number(nuevoPrecioTxt.trim());
-        if (isNaN(nuevoPrecio)) {
-            alert('El precio debe ser un número. No se guardó ningún cambio.');
-            return;
+    for (const pill of pillsActuales) {
+        const input = pill.querySelector('input');
+        const span = pill.querySelector('span');
+        const precioActual = input ? input.getAttribute('data-price') : '';
+        const textoActual = span ? span.textContent.replace(/\s*·\s*\$\d+(\.\d+)?/, '').replace(/\s*🆕\s*$/, '').trim() : '';
+        const nuevoTexto = window.prompt('Opción (déjala igual, edítala, o bórrala dejando el cuadro vacío para eliminarla):', textoActual);
+        if (nuevoTexto === null) return; // canceló todo, no se guarda nada
+        if (!nuevoTexto.trim()) continue; // se elimina esta opción
+
+        let nuevoPrecio = null;
+        if (afectaPrecio) {
+            const nuevoPrecioTxt = window.prompt(`Precio para "${nuevoTexto.trim()}" (solo el número):`, precioActual || '');
+            if (nuevoPrecioTxt === null) return;
+            nuevoPrecio = Number(nuevoPrecioTxt.trim());
+            if (isNaN(nuevoPrecio)) { alert('El precio debe ser un número. No se guardó ningún cambio.'); return; }
         }
-        opcionesGuardadas.push({ texto: nuevoTexto.trim(), precio: nuevoPrecio });
+        opcionesGuardadas.push({ texto: nuevoTexto.trim(), precio: nuevoPrecio, fecha: pill.getAttribute('data-fecha') || undefined });
     }
 
-    overrides[itemId] = { ...(overrides[itemId] || {}), opciones: opcionesGuardadas };
+    // Permite agregar opciones nuevas al final, una por una.
+    for (;;) {
+        const textoNuevo = window.prompt('¿Agregar otra opción? Escribe su nombre (déjalo vacío para terminar):');
+        if (!textoNuevo || !textoNuevo.trim()) break;
+        let precioNuevo = null;
+        if (afectaPrecio) {
+            const precioTxt = window.prompt(`Precio para "${textoNuevo.trim()}" (solo el número):`);
+            if (precioTxt === null) continue;
+            precioNuevo = Number(precioTxt.trim());
+            if (isNaN(precioNuevo)) { alert('El precio debe ser un número. No se agregó esa opción.'); continue; }
+        }
+        opcionesGuardadas.push({ texto: textoNuevo.trim(), precio: precioNuevo, fecha: new Date().toISOString() });
+    }
+
+    const overrides = { ...(contenidoServidor.menu || {}) };
+    overrides[itemId] = { ...(overrides[itemId] || {}), opciones: opcionesGuardadas, opcionesConPrecio: afectaPrecio };
 
     guardarContenidoEnServidor('menu', overrides).then((ok) => {
         if (!ok) return;
         contenidoServidor.menu = overrides;
         aplicarOverridesMenu();
-        alert('Precios actualizados: ya se ven así para todos los visitantes.');
+        alert('Sabores actualizados: ya se ven así para todos los visitantes.');
     });
 }
 
-// Aplica también las opciones (sabores/tamaños) guardadas desde el panel.
+// Reconstruye por completo el grupo de opciones de un producto a partir de
+// lo guardado (permite reflejar ediciones, borrados y opciones nuevas).
 const _aplicarOverridesMenuOriginal = aplicarOverridesMenu;
 function aplicarOverridesMenuConOpciones(){
     _aplicarOverridesMenuOriginal();
@@ -2555,13 +2592,36 @@ function aplicarOverridesMenuConOpciones(){
         const cambio = overrides[itemId];
         if (!cambio.opciones) return;
         document.querySelectorAll(`[data-item-id="${itemId}"]`).forEach((tarjeta) => {
-            const inputsPrecio = [...tarjeta.querySelectorAll('.item-options [data-price]')];
+            let opcionesWrap = tarjeta.querySelector('.item-options');
+            let grupo = tarjeta.querySelector('.item-options .option-group');
+            if (!opcionesWrap) {
+                opcionesWrap = document.createElement('div');
+                opcionesWrap.className = 'item-options';
+                const desc = tarjeta.querySelector('.menu-item-desc');
+                (desc || tarjeta.querySelector('.menu-item-head')).insertAdjacentElement('afterend', opcionesWrap);
+            }
+            if (!grupo) {
+                grupo = document.createElement('div');
+                grupo.className = 'option-group';
+                opcionesWrap.appendChild(grupo);
+            }
+            if (cambio.opcionesConPrecio) grupo.setAttribute('data-affects-price', 'true');
+            else grupo.removeAttribute('data-affects-price');
+
+            const nombreGrupo = `${itemId}-sabor`;
+            grupo.innerHTML = '';
             cambio.opciones.forEach((op, i) => {
-                const input = inputsPrecio[i];
-                if (!input) return;
-                input.setAttribute('data-price', op.precio);
-                const span = input.closest('label') ? input.closest('label').querySelector('span') : null;
-                if (span) span.textContent = `${op.texto} · $${op.precio}`;
+                const label = document.createElement('label');
+                label.className = 'option-pill' + (esReciente(op.fecha) ? ' sabor-nuevo' : '');
+                if (op.fecha) label.setAttribute('data-fecha', op.fecha);
+                const badge = esReciente(op.fecha) ? ' 🆕' : '';
+                const marcado = i === 0 ? ' checked' : '';
+                if (cambio.opcionesConPrecio && op.precio !== null && op.precio !== undefined) {
+                    label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${op.texto}" data-price="${op.precio}"${marcado}><span>${op.texto} · $${op.precio}${badge}</span>`;
+                } else {
+                    label.innerHTML = `<input type="radio" name="${nombreGrupo}" value="${op.texto}"${marcado}><span>${op.texto}${badge}</span>`;
+                }
+                grupo.appendChild(label);
             });
         });
     });
