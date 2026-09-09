@@ -2690,3 +2690,9 @@ body.dark-mode .transferencia-nota {
     35% { transform: scale(1.12); }
     100% { transform: scale(1); }
 }
+
+/* ---- Botón "+ Agregar producto" en cada pestaña del menú ---- */
+.menu-agregar-producto {
+    margin-top: 25px;
+    text-align: center;
+}

@@ -45,7 +45,7 @@ const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
 const API_BASE_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api';
 
 let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null };
+let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null, menuNuevos: null };
 
 function mostrarBotonesAdmin(mostrar){
     document.querySelectorAll('.solo-admin').forEach((el) => {
@@ -1683,7 +1683,7 @@ function inyectarBotonesEdicionMenu(){
         boton.className = 'menu-edit-btn solo-admin';
         boton.hidden = !modoAdmin;
         boton.title = tieneOpcionesConPrecio
-            ? 'Este platillo tiene sabores/tamaños con precio propio: edítalo desde el código para no romper los precios.'
+            ? 'Editar los precios de cada opción (sabor/tamaño)'
             : 'Editar nombre, descripción o precio';
         boton.textContent = '✏️';
         boton.style.cssText = 'margin-left:6px;cursor:pointer;border:none;background:transparent;font-size:0.9rem;';
@@ -1693,7 +1693,7 @@ function inyectarBotonesEdicionMenu(){
             e.stopPropagation();
 
             if (tieneOpcionesConPrecio) {
-                alert('Este platillo tiene varios precios según la opción elegida (sabor, tamaño, etc.). Para no romper esos precios, edítalo directo en inicio.html/script.js. Si quieres, dime cuál es y te digo exactamente qué línea cambiar.');
+                editarOpcionesConPrecio(tarjeta, itemId);
                 return;
             }
 
@@ -1854,6 +1854,7 @@ cargaContenidoServidor.then(() => {
     aplicarOverridesInicio();
     aplicarOverridesInfo();
     aplicarOverridesMenu();
+    pintarMenuNuevos();
     inyectarBotonesEdicionMenu();
     if (modoAdmin) mostrarBotonesAdmin(true);
 });
@@ -2165,3 +2166,230 @@ document.querySelectorAll('.navbar a').forEach((link) => {
         }
     });
 });
+
+// =====================================================================
+// AGREGAR PRODUCTOS NUEVOS (Bebidas, Snacks, Desayunos, Comida Corrida)
+// =====================================================================
+const CATEGORIAS_MENU = ['bebidas', 'snacks', 'desayunos', 'corrida'];
+
+function obtenerMenuNuevosActual(){
+    return contenidoServidor.menuNuevos || { bebidas: [], snacks: [], desayunos: [], corrida: [] };
+}
+
+// Crea una tarjeta de producto sencilla (un solo precio, sin variantes) con
+// exactamente la misma estructura que las tarjetas ya existentes, para que
+// el carrito la reconozca automáticamente.
+function crearTarjetaMenuSimple(item, itemId){
+    const div = document.createElement('div');
+    div.className = 'menu-item cart-item';
+    div.setAttribute('data-name', item.nombre || '');
+    div.setAttribute('data-base-price', item.precio);
+    div.setAttribute('data-image', item.imagen || 'imagenes/logo.png');
+    div.setAttribute('data-item-id', itemId);
+    div.innerHTML = `
+        <img class="menu-item-thumb" src="${item.imagen || 'imagenes/logo.png'}" alt="">
+        <div class="menu-item-head"><span class="menu-item-name">${item.nombre || ''}</span><span class="menu-item-price" data-price-display>$${item.precio}</span></div>
+        <p class="menu-item-desc">${item.descripcion || ''}</p>
+        <button type="button" class="agregar-carrito-v2 btn-3">Agregar al carrito</button>
+    `;
+    return div;
+}
+
+// Le da a una tarjeta creada dinámicamente el mismo comportamiento
+// (selector de cantidad + agregar al carrito) que ya tienen las demás.
+function configurarNuevaTarjetaCarrito(card){
+    if (!card.id) card.id = `cart-source-nuevo-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const btn = card.querySelector('.agregar-carrito-v2');
+    if (!btn || card.querySelector('.cantidad-selector')) return;
+
+    const selector = document.createElement('div');
+    selector.className = 'cantidad-selector';
+    selector.innerHTML = `
+        <button type="button" class="cantidad-btn cantidad-menos" aria-label="Quitar una orden">−</button>
+        <span class="cantidad-valor">1</span>
+        <button type="button" class="cantidad-btn cantidad-mas" aria-label="Agregar una orden">+</button>
+    `;
+    btn.insertAdjacentElement('beforebegin', selector);
+    selector.querySelector('.cantidad-menos').addEventListener('click', () => fijarCantidad(card, obtenerCantidad(card) - 1));
+    selector.querySelector('.cantidad-mas').addEventListener('click', () => fijarCantidad(card, obtenerCantidad(card) + 1));
+    fijarCantidad(card, 1);
+
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const precioUnitario = calcularPrecio(card);
+        if (precioUnitario === null) return;
+        const cantidad = obtenerCantidad(card);
+        const precioTotal = precioUnitario * cantidad;
+        const nombreBase = card.getAttribute('data-name');
+        let titulo = nombreBase;
+        if (cantidad > 1) titulo += ` ×${cantidad}`;
+        const imagen = card.getAttribute('data-image') || 'imagenes/logo.png';
+
+        contadorCarrito++;
+        insertarCarrito({
+            imagen: imagen,
+            titulo: titulo,
+            precio: formatearPrecio(precioTotal),
+            id: `item-${contadorCarrito}`,
+            sourceId: card.id
+        });
+        mostrarToastAgregado(cantidad > 1 ? `${nombreBase} ×${cantidad}` : nombreBase);
+        fijarCantidad(card, 1);
+    });
+}
+
+function pintarMenuNuevos(){
+    const datos = obtenerMenuNuevosActual();
+    CATEGORIAS_MENU.forEach((cat) => {
+        const wrap = document.getElementById(`agregar-${cat}-wrap`);
+        if (!wrap) return;
+        (datos[cat] || []).forEach((item, i) => {
+            const itemId = `nuevo-${cat}-${i}`;
+            if (document.querySelector(`[data-item-id="${itemId}"]`)) return; // ya está pintado
+            const card = crearTarjetaMenuSimple(item, itemId);
+            wrap.insertAdjacentElement('beforebegin', card);
+            configurarNuevaTarjetaCarrito(card);
+        });
+    });
+}
+
+// Modal compartido para agregar un producto nuevo en cualquiera de las 4 pestañas.
+const nuevoProductoModal = document.getElementById('nuevo-producto-modal');
+const nuevoProductoModalClose = document.getElementById('nuevo-producto-modal-close');
+const nuevoProductoNombre = document.getElementById('nuevo-producto-nombre');
+const nuevoProductoDescripcion = document.getElementById('nuevo-producto-descripcion');
+const nuevoProductoPrecio = document.getElementById('nuevo-producto-precio');
+const nuevoProductoImagen = document.getElementById('nuevo-producto-imagen');
+const nuevoProductoPreview = document.getElementById('nuevo-producto-preview');
+const nuevoProductoPreviewWrap = document.getElementById('nuevo-producto-preview-wrap');
+const nuevoProductoGuardar = document.getElementById('nuevo-producto-guardar');
+let nuevoProductoCategoriaActual = null;
+let nuevoProductoImagenBase64 = '';
+
+CATEGORIAS_MENU.forEach((cat) => {
+    const btn = document.getElementById(`agregar-${cat}-btn`);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        nuevoProductoCategoriaActual = cat;
+        nuevoProductoImagenBase64 = '';
+        if (nuevoProductoNombre) nuevoProductoNombre.value = '';
+        if (nuevoProductoDescripcion) nuevoProductoDescripcion.value = '';
+        if (nuevoProductoPrecio) nuevoProductoPrecio.value = '';
+        if (nuevoProductoImagen) nuevoProductoImagen.value = '';
+        if (nuevoProductoPreviewWrap) nuevoProductoPreviewWrap.hidden = true;
+        nuevoProductoModal.classList.add('open');
+    });
+});
+
+if (nuevoProductoImagen) {
+    nuevoProductoImagen.addEventListener('change', () => {
+        const archivo = nuevoProductoImagen.files[0];
+        if (!archivo) return;
+        const lector = new FileReader();
+        lector.onload = () => {
+            nuevoProductoImagenBase64 = lector.result;
+            nuevoProductoPreview.src = nuevoProductoImagenBase64;
+            nuevoProductoPreviewWrap.hidden = false;
+        };
+        lector.readAsDataURL(archivo);
+    });
+}
+
+if (nuevoProductoModalClose) nuevoProductoModalClose.addEventListener('click', () => nuevoProductoModal.classList.remove('open'));
+if (nuevoProductoModal) nuevoProductoModal.addEventListener('click', (e) => { if (e.target === nuevoProductoModal) nuevoProductoModal.classList.remove('open'); });
+
+if (nuevoProductoGuardar) {
+    nuevoProductoGuardar.addEventListener('click', async () => {
+        const nombre = nuevoProductoNombre.value.trim();
+        const precio = Number(nuevoProductoPrecio.value.trim());
+        if (!nombre || !nuevoProductoPrecio.value.trim() || isNaN(precio)) {
+            alert('Escribe al menos el nombre y un precio válido (solo el número).');
+            return;
+        }
+        const nuevoItem = {
+            nombre,
+            descripcion: nuevoProductoDescripcion.value.trim(),
+            precio,
+            imagen: nuevoProductoImagenBase64
+        };
+
+        const datosActuales = obtenerMenuNuevosActual();
+        const copia = {
+            bebidas: [...(datosActuales.bebidas || [])],
+            snacks: [...(datosActuales.snacks || [])],
+            desayunos: [...(datosActuales.desayunos || [])],
+            corrida: [...(datosActuales.corrida || [])]
+        };
+        copia[nuevoProductoCategoriaActual].push(nuevoItem);
+
+        nuevoProductoGuardar.disabled = true;
+        const ok = await guardarContenidoEnServidor('menu-nuevos', copia);
+        nuevoProductoGuardar.disabled = false;
+        if (!ok) return;
+
+        contenidoServidor.menuNuevos = copia;
+        pintarMenuNuevos();
+        nuevoProductoModal.classList.remove('open');
+        alert('Producto agregado: ya se ve para todos los visitantes.');
+    });
+}
+
+// =====================================================================
+// EDITAR PRODUCTOS CON VARIAS OPCIONES DE PRECIO (sabores/tamaños)
+// =====================================================================
+// Para estos, en vez de bloquear la edición, se pregunta uno por uno el
+// nombre y precio de cada opción (rápido de usar desde el panel).
+function editarOpcionesConPrecio(tarjeta, itemId){
+    const inputsPrecio = [...tarjeta.querySelectorAll('.item-options [data-price]')];
+    if (!inputsPrecio.length) return;
+
+    const overrides = { ...(contenidoServidor.menu || {}) };
+    const opcionesGuardadas = [];
+
+    for (const input of inputsPrecio) {
+        const span = input.closest('label') ? input.closest('label').querySelector('span') : null;
+        const textoActual = span ? span.textContent.trim() : '';
+        const nuevoTexto = window.prompt(`Opción (texto que ve el cliente):`, textoActual);
+        if (nuevoTexto === null) return; // canceló
+        const precioActual = input.getAttribute('data-price');
+        const nuevoPrecioTxt = window.prompt(`Precio para "${nuevoTexto}" (solo el número):`, precioActual);
+        if (nuevoPrecioTxt === null) return;
+        const nuevoPrecio = Number(nuevoPrecioTxt.trim());
+        if (isNaN(nuevoPrecio)) {
+            alert('El precio debe ser un número. No se guardó ningún cambio.');
+            return;
+        }
+        opcionesGuardadas.push({ texto: nuevoTexto.trim(), precio: nuevoPrecio });
+    }
+
+    overrides[itemId] = { ...(overrides[itemId] || {}), opciones: opcionesGuardadas };
+
+    guardarContenidoEnServidor('menu', overrides).then((ok) => {
+        if (!ok) return;
+        contenidoServidor.menu = overrides;
+        aplicarOverridesMenu();
+        alert('Precios actualizados: ya se ven así para todos los visitantes.');
+    });
+}
+
+// Aplica también las opciones (sabores/tamaños) guardadas desde el panel.
+const _aplicarOverridesMenuOriginal = aplicarOverridesMenu;
+function aplicarOverridesMenuConOpciones(){
+    _aplicarOverridesMenuOriginal();
+    const overrides = contenidoServidor.menu || {};
+    Object.keys(overrides).forEach((itemId) => {
+        const cambio = overrides[itemId];
+        if (!cambio.opciones) return;
+        document.querySelectorAll(`[data-item-id="${itemId}"]`).forEach((tarjeta) => {
+            const inputsPrecio = [...tarjeta.querySelectorAll('.item-options [data-price]')];
+            cambio.opciones.forEach((op, i) => {
+                const input = inputsPrecio[i];
+                if (!input) return;
+                input.setAttribute('data-price', op.precio);
+                const span = input.closest('label') ? input.closest('label').querySelector('span') : null;
+                if (span) span.textContent = `${op.texto} · $${op.precio}`;
+            });
+        });
+    });
+}
+aplicarOverridesMenu = aplicarOverridesMenuConOpciones;

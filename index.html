@@ -721,7 +721,11 @@
                     </div>
                 </div>
 
+            
+            <div class="menu-agregar-producto solo-admin" id="agregar-bebidas-wrap" hidden>
+                <button type="button" class="noticias-modal-agregar" id="agregar-bebidas-btn">+ Agregar bebidas</button>
             </div>
+</div>
 
             <!-- SNACKS -->
             <div class="menu-panel" id="panel-snacks">
@@ -836,7 +840,11 @@
 
                     </div>
                 </div>
+            
+            <div class="menu-agregar-producto solo-admin" id="agregar-snacks-wrap" hidden>
+                <button type="button" class="noticias-modal-agregar" id="agregar-snacks-btn">+ Agregar snacks</button>
             </div>
+</div>
 
             <!-- DESAYUNOS -->
             <div class="menu-panel" id="panel-desayunos">
@@ -1003,7 +1011,11 @@
 
                     </div>
                 </div>
+            
+            <div class="menu-agregar-producto solo-admin" id="agregar-desayunos-wrap" hidden>
+                <button type="button" class="noticias-modal-agregar" id="agregar-desayunos-btn">+ Agregar desayunos</button>
             </div>
+</div>
 
             <!-- COMIDA CORRIDA -->
             <div class="menu-panel" id="panel-corrida">
@@ -1044,7 +1056,11 @@
                         </a>
                     </div>
                 </div>
+            
+            <div class="menu-agregar-producto solo-admin" id="agregar-corrida-wrap" hidden>
+                <button type="button" class="noticias-modal-agregar" id="agregar-corrida-btn">+ Agregar corrida</button>
             </div>
+</div>
 
             <div class="menu-panel" id="panel-recetas">
                 <div id="recetas-container"></div>
@@ -1350,5 +1366,32 @@
     </footer>
 
     <script src="script.js"></script>
+    <div class="noticias-modal" id="nuevo-producto-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="nuevo-producto-modal-close" aria-label="Cerrar">✕</button>
+            <h3>➕ Agregar producto nuevo</h3>
+            <p class="noticias-modal-sub">
+                Crea un producto sencillo (con un solo precio). Se agrega al final de esta pestaña
+                del menú y se ve para todos los visitantes al guardar.
+            </p>
+            <div class="noticia-form">
+                <label>Nombre</label>
+                <input type="text" id="nuevo-producto-nombre" placeholder="Ej. Té helado">
+                <label style="margin-top:10px">Descripción</label>
+                <textarea id="nuevo-producto-descripcion" placeholder="Breve descripción"></textarea>
+                <label style="margin-top:10px">Precio (solo el número)</label>
+                <input type="text" id="nuevo-producto-precio" placeholder="Ej. 45">
+                <label style="margin-top:10px">Imagen</label>
+                <input type="file" id="nuevo-producto-imagen" accept="image/*">
+                <p id="nuevo-producto-preview-wrap" hidden style="margin-top:10px;">
+                    <img id="nuevo-producto-preview" style="max-width:100px; border-radius:8px;" alt="Vista previa">
+                </p>
+            </div>
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="nuevo-producto-guardar">Agregar (para todos)</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
