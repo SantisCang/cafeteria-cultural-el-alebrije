@@ -2144,6 +2144,9 @@ p {
     margin: 16px 0 0 0;
 }
 @media (max-width:991px) {
+    .header {
+        background-image: none !important;
+    }
     .menu-inner {
         padding: 20px;
     }
