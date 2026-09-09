@@ -1366,6 +1366,36 @@
         <p class="footer-copy">© 2026 Café Cultural El Alebrije. Todos los derechos reservados.</p>
     </footer>
 
+    <div class="noticias-modal" id="nuevo-sabor-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="nuevo-sabor-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🍹 Agregar sabor nuevo</h3>
+            <p class="noticias-modal-sub">
+                Elige la bebida y escribe el sabor nuevo. Se agrega como una opción más para que el cliente elija.
+            </p>
+            <div class="noticia-form">
+                <label>Bebida</label>
+                <select id="nuevo-sabor-producto">
+                    <option value="capuchino">Capuchino</option>
+                    <option value="capuchino-frio">Capuchino Frío</option>
+                    <option value="latte">Latte</option>
+                    <option value="latte-frio">Latte Frío</option>
+                    <option value="atole">Atole</option>
+                    <option value="frappe">Frappé</option>
+                    <option value="te">Té</option>
+                </select>
+                <label style="margin-top:10px">Nombre del sabor nuevo</label>
+                <input type="text" id="nuevo-sabor-nombre" placeholder="Ej. Rompope">
+                <label style="margin-top:10px">Precio (déjalo vacío si no cambia el precio)</label>
+                <input type="text" id="nuevo-sabor-precio" placeholder="Ej. 50">
+            </div>
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="nuevo-sabor-guardar">Aceptar</button>
+                <button type="button" class="noticias-modal-agregar" id="nuevo-sabor-cancelar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js" defer></script>
     <div class="noticias-modal" id="nuevo-producto-modal">
         <div class="noticias-modal-inner">
