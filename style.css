@@ -2334,10 +2334,6 @@ body.dark-mode .eyebrow {
 body.dark-mode .header {
     background-color: #1b140f;
 }
-body.dark-mode .bg-2 {
-    opacity: 0.35;
-    filter: brightness(0.7) saturate(0.8);
-}
 body.dark-mode .header {
     background-color: #1b140f;
 }
