@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Funciones serverless (Vercel) para Mercado Pago y el panel de edición del sitio.",
+  "description": "Funciones serverless (Vercel) para el panel de edición del sitio y subida de archivos.",
   "dependencies": {
-    "@vercel/kv": "^2.0.0"
+    "@vercel/kv": "^2.0.0",
+    "@vercel/blob": "^0.27.0"
   }
 }

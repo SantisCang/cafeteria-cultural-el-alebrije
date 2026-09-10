@@ -121,6 +121,29 @@ async function guardarContenidoEnServidor(tipo, datos){
     }
 }
 
+// Sube un archivo grande (audio de podcast, video, etc.) directo a Vercel
+// Blob desde el navegador, para no toparnos con el límite de tamaño de
+// Vercel KV/funciones. Regresa el link público del archivo ya subido.
+async function subirArchivoGrande(archivo, onProgreso){
+    let clave = obtenerClaveAdmin();
+    if (!clave) {
+        clave = window.prompt('Contraseña del panel para subir el archivo:') || '';
+        if (!clave) throw new Error('Falta la contraseña del panel');
+    }
+
+    const { upload } = await import('https://esm.sh/@vercel/blob@0.27.0/client');
+
+    const resultado = await upload(archivo.name, archivo, {
+        access: 'public',
+        handleUploadUrl: `${API_BASE_URL}/blob-upload`,
+        clientPayload: JSON.stringify({ password: clave }),
+        onUploadProgress: onProgreso ? (p) => onProgreso(p.percentage) : undefined
+    });
+
+    sessionStorage.setItem('elalebrije-admin-clave', clave);
+    return resultado.url;
+}
+
 // Trae el contenido actual del servidor (si existe) antes de pintar nada.
 // Si el servidor no responde (sin internet, Vercel no configurado aún, etc.)
 // el sitio sigue funcionando con las listas de este archivo.
@@ -567,17 +590,22 @@ const videoModal = document.getElementById('video-modal');
 const videoModalFrame = document.getElementById('video-modal-frame');
 const videoModalClose = document.getElementById('video-modal-close');
 
-function abrirVideoModal(videoId, title){
-    if (!videoId) {
+function abrirVideoModal(v, title){
+    v = v || {};
+    if (v.youtubeId) {
+        videoModalFrame.innerHTML = `<iframe
+            width="100%" height="100%"
+            src="https://www.youtube.com/embed/${v.youtubeId}?autoplay=1"
+            title="${title || ''}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>`;
+    } else if (v.videoUrl) {
+        videoModalFrame.innerHTML = `<video src="${v.videoUrl}" controls autoplay style="width:100%; height:100%; background:#000;"></video>`;
+    } else {
         videoModalFrame.innerHTML = `<p style="color:#fff;padding:40px;text-align:center;">
             Todavía no se ha agregado el video de "${title}".
         </p>`;
-    } else {
-        videoModalFrame.innerHTML = `<iframe
-            src="https://www.youtube.com/embed/${videoId}"
-            title="${title}"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>`;
     }
     videoModal.classList.add('open');
 }
@@ -667,7 +695,7 @@ function renderFormularioPodcast(){
             <textarea data-campo="descripcion" data-i="${i}">${ep.descripcion || ''}</textarea>
             <label style="margin-top:10px">Subir archivo de audio (opcional, si NO usas YouTube)</label>
             <input type="file" accept="audio/*" data-campo-archivo="audio" data-i="${i}">
-            ${ep.audio && ep.audio.startsWith('data:') ? `<p style="font-size:12px; color:#2a9d4a; margin-top:4px;">✓ Audio adjuntado</p>` : ''}
+            <p class="podcast-subida-estado" data-estado-i="${i}" style="font-size:12px; margin-top:4px;">${ep.audio ? '✓ Audio adjuntado' : ''}</p>
             <label style="margin-top:10px">Link de YouTube (opcional, pega el link completo si el episodio tiene video)</label>
             <input type="text" placeholder="https://www.youtube.com/watch?v=..." value="${ep.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
             <div style="margin-top:10px; text-align:right;">
@@ -686,17 +714,26 @@ function renderFormularioPodcast(){
         });
     });
     podcastModalLista.querySelectorAll('input[type="file"][data-campo-archivo]').forEach((input) => {
-        input.addEventListener('change', () => {
+        input.addEventListener('change', async () => {
             const archivo = input.files[0];
             if (!archivo) return;
             const i = Number(input.getAttribute('data-i'));
             const campo = input.getAttribute('data-campo-archivo');
-            const lector = new FileReader();
-            lector.onload = () => {
-                podcastFormulario[i][campo] = lector.result;
-                renderFormularioPodcast();
-            };
-            lector.readAsDataURL(archivo);
+            const estadoEl = podcastModalLista.querySelector(`[data-estado-i="${i}"]`);
+            input.disabled = true;
+            if (estadoEl) estadoEl.textContent = '⏳ Subiendo audio... 0%';
+            try {
+                const url = await subirArchivoGrande(archivo, (pct) => {
+                    if (estadoEl) estadoEl.textContent = `⏳ Subiendo audio... ${Math.round(pct)}%`;
+                });
+                podcastFormulario[i][campo] = url;
+                if (estadoEl) estadoEl.textContent = '✓ Audio subido correctamente';
+            } catch (err) {
+                console.error('Error subiendo audio:', err);
+                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir el audio. Intenta de nuevo.';
+            } finally {
+                input.disabled = false;
+            }
         });
     });
     podcastModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
@@ -740,10 +777,10 @@ if (podcastModalGuardar) {
 // VIDEOS
 // =====================================================================
 const VIDEOS = [
-    { titulo: 'Un día en El Alebrije', color: '#e6007e', youtubeId: '' },
-    { titulo: 'Ritual del café de olla', color: '#00b3a4', youtubeId: '' },
-    { titulo: 'Pintando alebrijes', color: '#1f6fd6', youtubeId: '' },
-    { titulo: 'Noche de jazz en el patio', color: '#ff9000', youtubeId: '' }
+    { titulo: 'Un día en El Alebrije', color: '#e6007e', youtubeId: '', videoUrl: '' },
+    { titulo: 'Ritual del café de olla', color: '#00b3a4', youtubeId: '', videoUrl: '' },
+    { titulo: 'Pintando alebrijes', color: '#1f6fd6', youtubeId: '', videoUrl: '' },
+    { titulo: 'Noche de jazz en el patio', color: '#ff9000', youtubeId: '', videoUrl: '' }
 ];
 
 function obtenerVideosActuales(){
@@ -780,11 +817,13 @@ function pintarVideos(){
         btn.style.setProperty('--accent', v.color || '#ff9000');
         const portada = v.youtubeId
             ? `<img src="https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg" alt="${v.titulo || ''}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;">`
-            : '';
+            : (v.videoUrl
+                ? `<video src="${v.videoUrl}#t=0.5" muted preload="metadata" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;"></video>`
+                : '');
         btn.style.position = 'relative';
         btn.style.overflow = 'hidden';
         btn.innerHTML = `${portada}<span class="video-play" style="z-index:1;">▶</span><span class="video-label" style="z-index:1;">${v.titulo || ''}</span>`;
-        btn.addEventListener('click', () => abrirVideoModal(v.youtubeId, v.titulo || 'Video'));
+        btn.addEventListener('click', () => abrirVideoModal(v, v.titulo || 'Video'));
         grid.appendChild(btn);
     });
 }
@@ -808,16 +847,19 @@ function renderFormularioVideos(){
         fila.innerHTML = `
             <label>Título</label>
             <input type="text" placeholder="Título del video" value="${v.titulo || ''}" data-campo="titulo" data-i="${i}">
-            <label style="margin-top:10px">Link de YouTube (pega el link completo)</label>
+            <label style="margin-top:10px">Link de YouTube (opcional, pega el link completo)</label>
             <input type="text" placeholder="https://www.youtube.com/watch?v=..." value="${v.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
             ${v.youtubeId ? `<img src="https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg" style="max-width:180px; border-radius:6px; margin-top:8px; display:block;" alt="Portada">` : ''}
+            <label style="margin-top:10px">O sube un video grabado (opcional, si NO usas YouTube)</label>
+            <input type="file" accept="video/*" data-campo-archivo="videoUrl" data-i="${i}">
+            <p class="video-subida-estado" data-estado-i="${i}" style="font-size:12px; margin-top:4px;">${v.videoUrl ? '✓ Video adjuntado' : ''}</p>
             <div style="margin-top:10px; text-align:right;">
                 <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este video</button>
             </div>
         `;
         videosModalLista.appendChild(fila);
     });
-    videosModalLista.querySelectorAll('input').forEach((input) => {
+    videosModalLista.querySelectorAll('input[type="text"]').forEach((input) => {
         input.addEventListener(input.getAttribute('data-campo') === 'youtubeId' ? 'change' : 'input', () => {
             const i = Number(input.getAttribute('data-i'));
             const campo = input.getAttribute('data-campo');
@@ -825,6 +867,29 @@ function renderFormularioVideos(){
             if (campo === 'youtubeId') valor = extraerYoutubeId(valor);
             videosFormulario[i][campo] = valor;
             if (campo === 'youtubeId') renderFormularioVideos();
+        });
+    });
+    videosModalLista.querySelectorAll('input[type="file"][data-campo-archivo]').forEach((input) => {
+        input.addEventListener('change', async () => {
+            const archivo = input.files[0];
+            if (!archivo) return;
+            const i = Number(input.getAttribute('data-i'));
+            const campo = input.getAttribute('data-campo-archivo');
+            const estadoEl = videosModalLista.querySelector(`[data-estado-i="${i}"]`);
+            input.disabled = true;
+            if (estadoEl) estadoEl.textContent = '⏳ Subiendo video... 0%';
+            try {
+                const url = await subirArchivoGrande(archivo, (pct) => {
+                    if (estadoEl) estadoEl.textContent = `⏳ Subiendo video... ${Math.round(pct)}%`;
+                });
+                videosFormulario[i][campo] = url;
+                if (estadoEl) estadoEl.textContent = '✓ Video subido correctamente';
+            } catch (err) {
+                console.error('Error subiendo video:', err);
+                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir el video. Intenta de nuevo.';
+            } finally {
+                input.disabled = false;
+            }
         });
     });
     videosModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
@@ -847,7 +912,7 @@ if (videosModalClose) videosModalClose.addEventListener('click', () => videosMod
 if (videosModal) videosModal.addEventListener('click', (e) => { if (e.target === videosModal) videosModal.classList.remove('open'); });
 if (videosModalAgregar) {
     videosModalAgregar.addEventListener('click', () => {
-        videosFormulario.push({ titulo: '', color: '#ff9000', youtubeId: '' });
+        videosFormulario.push({ titulo: '', color: '#ff9000', youtubeId: '', videoUrl: '' });
         renderFormularioVideos();
     });
 }
