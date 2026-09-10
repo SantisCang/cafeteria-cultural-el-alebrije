@@ -1398,6 +1398,35 @@
             </div>
         </div>
     </div>
+    <div class="noticias-modal" id="agregar-sabor-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="agregar-sabor-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🍨 Agregar sabor nuevo</h3>
+            <p class="noticias-modal-sub">
+                Se agrega como una opción más dentro de esa bebida (no crea una tarjeta aparte).
+                Se ve para todos los visitantes al guardar.
+            </p>
+            <div class="noticia-form">
+                <label>¿A qué bebida le agregas el sabor?</label>
+                <select id="agregar-sabor-item">
+                    <option value="capuchino">Capuchino</option>
+                    <option value="capuchino-frio">Capuchino Frío</option>
+                    <option value="latte">Latte</option>
+                    <option value="latte-frio">Latte Frío</option>
+                    <option value="frappe">Frappé</option>
+                    <option value="te">Té</option>
+                    <option value="atole">Atole</option>
+                </select>
+                <label style="margin-top:10px">Nombre del sabor nuevo</label>
+                <input type="text" id="agregar-sabor-nombre" placeholder="Ej. Rompope">
+                <label style="margin-top:10px">Precio extra (opcional, déjalo vacío si cuesta lo mismo)</label>
+                <input type="text" id="agregar-sabor-precio" placeholder="Ej. 45">
+            </div>
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="agregar-sabor-guardar">Agregar (para todos)</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

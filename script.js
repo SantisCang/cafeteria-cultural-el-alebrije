@@ -2555,45 +2555,73 @@ function pintarSaboresNuevos(){
 }
 
 const agregarSaborBtn = document.getElementById('agregar-sabor-btn');
+const agregarSaborModal = document.getElementById('agregar-sabor-modal');
+const agregarSaborModalClose = document.getElementById('agregar-sabor-modal-close');
+const agregarSaborItemSelect = document.getElementById('agregar-sabor-item');
+const agregarSaborNombreInput = document.getElementById('agregar-sabor-nombre');
+const agregarSaborPrecioInput = document.getElementById('agregar-sabor-precio');
+const agregarSaborGuardarBtn = document.getElementById('agregar-sabor-guardar');
+
 if (agregarSaborBtn) {
-    agregarSaborBtn.addEventListener('click', async () => {
-        const productos = [...document.querySelectorAll('#panel-bebidas .menu-item[data-item-id]')];
-        const nombres = productos.map((p) => p.getAttribute('data-name')).join('\n');
-        const nombreProducto = window.prompt(`¿A qué bebida le quieres agregar el sabor nuevo? Escribe el nombre exacto tal como aparece:\n\n${nombres}`);
-        if (!nombreProducto) return;
-        const tarjeta = productos.find((p) => (p.getAttribute('data-name') || '').trim().toLowerCase() === nombreProducto.trim().toLowerCase());
+    agregarSaborBtn.addEventListener('click', () => {
+        if (agregarSaborNombreInput) agregarSaborNombreInput.value = '';
+        if (agregarSaborPrecioInput) agregarSaborPrecioInput.value = '';
+        if (agregarSaborModal) agregarSaborModal.classList.add('open');
+    });
+}
+if (agregarSaborModalClose) {
+    agregarSaborModalClose.addEventListener('click', () => agregarSaborModal.classList.remove('open'));
+}
+if (agregarSaborModal) {
+    agregarSaborModal.addEventListener('click', (e) => {
+        if (e.target === agregarSaborModal) agregarSaborModal.classList.remove('open');
+    });
+}
+
+if (agregarSaborGuardarBtn) {
+    agregarSaborGuardarBtn.addEventListener('click', async () => {
+        const itemId = agregarSaborItemSelect ? agregarSaborItemSelect.value : '';
+        const tarjeta = document.querySelector(`#panel-bebidas .menu-item[data-item-id="${itemId}"]`);
         if (!tarjeta) {
-            alert('No encontré ese producto exactamente con ese nombre. Inténtalo de nuevo copiando el nombre tal cual aparece en el menú.');
+            alert('No encontré esa bebida en el menú.');
             return;
         }
-        const sabor = window.prompt('¿Cuál es el nombre del sabor nuevo? (Ej. Rompope)');
-        if (!sabor || !sabor.trim()) return;
-        const tieneOpcionesConPrecio = !!tarjeta.querySelector('.item-options [data-price]');
+
+        const sabor = (agregarSaborNombreInput.value || '').trim();
+        if (!sabor) {
+            alert('Escribe el nombre del sabor.');
+            agregarSaborNombreInput.focus();
+            return;
+        }
+
+        const precioTxt = (agregarSaborPrecioInput.value || '').trim();
         let precio = null;
-        if (tieneOpcionesConPrecio) {
-            const precioTxt = window.prompt(`Precio para "${sabor.trim()}" (solo el número):`);
-            if (precioTxt === null) return;
-            precio = Number(precioTxt.trim());
-            if (isNaN(precio)) { alert('El precio debe ser un número.'); return; }
+        if (precioTxt) {
+            precio = Number(precioTxt);
+            if (isNaN(precio)) {
+                alert('El precio debe ser solo un número.');
+                return;
+            }
         }
 
         const nuevoSabor = {
-            itemId: tarjeta.getAttribute('data-item-id'),
+            itemId,
             itemNombre: tarjeta.getAttribute('data-name'),
-            sabor: sabor.trim(),
+            sabor,
             precio,
             fecha: new Date().toISOString()
         };
         const copia = [...obtenerSaboresNuevosActuales(), nuevoSabor];
 
-        agregarSaborBtn.disabled = true;
+        agregarSaborGuardarBtn.disabled = true;
         const ok = await guardarContenidoEnServidor('menu-sabores', copia);
-        agregarSaborBtn.disabled = false;
+        agregarSaborGuardarBtn.disabled = false;
         if (!ok) return;
 
         contenidoServidor.menuSabores = copia;
         pintarSaboresNuevos();
-        publicarNoticiaAutomatica('Nuevo sabor', `Nuevo sabor de ${nuevoSabor.itemNombre}: ${nuevoSabor.sabor}`, `Ya puedes pedir tu ${nuevoSabor.itemNombre} en sabor ${nuevoSabor.sabor}.`);
+        agregarSaborModal.classList.remove('open');
+        publicarNoticiaAutomatica('Nuevo sabor', `Nuevo sabor de ${nuevoSabor.itemNombre}`, `Ya puedes pedir tu ${nuevoSabor.itemNombre} en sabor ${nuevoSabor.sabor}.`);
         alert('Sabor agregado: ya se ve para todos los visitantes.');
     });
 }
