@@ -707,7 +707,10 @@ function renderFormularioPodcast(){
             <textarea data-campo="descripcion" data-i="${i}">${ep.descripcion || ''}</textarea>
             <label style="margin-top:10px">Subir archivo de audio (opcional, si NO usas YouTube)</label>
             <input type="file" accept="audio/*" data-campo-archivo="audio" data-i="${i}">
-            <p class="podcast-subida-estado" data-estado-i="${i}" style="font-size:12px; margin-top:4px;">${ep.audio ? '✓ Audio adjuntado' : ''}</p>
+            <p class="podcast-subida-estado" data-estado-i="${i}" style="font-size:12px; margin-top:4px;">
+                ${ep.audio ? '✓ Audio adjuntado' : ''}
+                ${ep.audio ? `<button type="button" class="podcast-quitar-audio" data-i="${i}" style="margin-left:8px; color:#c0392b; background:none; border:none; text-decoration:underline; cursor:pointer; font-size:12px; padding:0;">🗑 Quitar audio</button>` : ''}
+            </p>
             <label style="margin-top:10px">Link de YouTube (opcional, pega el link completo si el episodio tiene video)</label>
             <input type="text" placeholder="https://www.youtube.com/watch?v=..." value="${ep.youtubeId || ''}" data-campo="youtubeId" data-i="${i}">
             <div style="margin-top:10px; text-align:right;">
@@ -746,6 +749,13 @@ function renderFormularioPodcast(){
             } finally {
                 input.disabled = false;
             }
+        });
+    });
+    podcastModalLista.querySelectorAll('.podcast-quitar-audio').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const i = Number(btn.getAttribute('data-i'));
+            podcastFormulario[i].audio = '';
+            renderFormularioPodcast();
         });
     });
     podcastModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
@@ -864,7 +874,10 @@ function renderFormularioVideos(){
             ${v.youtubeId ? `<img src="https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg" style="max-width:180px; border-radius:6px; margin-top:8px; display:block;" alt="Portada">` : ''}
             <label style="margin-top:10px">O sube un video grabado (opcional, si NO usas YouTube)</label>
             <input type="file" accept="video/*" data-campo-archivo="videoUrl" data-i="${i}">
-            <p class="video-subida-estado" data-estado-i="${i}" style="font-size:12px; margin-top:4px;">${v.videoUrl ? '✓ Video adjuntado' : ''}</p>
+            <p class="video-subida-estado" data-estado-i="${i}" style="font-size:12px; margin-top:4px;">
+                ${v.videoUrl ? '✓ Video adjuntado' : ''}
+                ${v.videoUrl ? `<button type="button" class="video-quitar-archivo" data-i="${i}" style="margin-left:8px; color:#c0392b; background:none; border:none; text-decoration:underline; cursor:pointer; font-size:12px; padding:0;">🗑 Quitar video</button>` : ''}
+            </p>
             <div style="margin-top:10px; text-align:right;">
                 <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este video</button>
             </div>
@@ -902,6 +915,13 @@ function renderFormularioVideos(){
             } finally {
                 input.disabled = false;
             }
+        });
+    });
+    videosModalLista.querySelectorAll('.video-quitar-archivo').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const i = Number(btn.getAttribute('data-i'));
+            videosFormulario[i].videoUrl = '';
+            renderFormularioVideos();
         });
     });
     videosModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
