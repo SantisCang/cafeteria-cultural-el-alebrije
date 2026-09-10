@@ -43,7 +43,7 @@ export default async function handler(request, response) {
                 }
 
                 return {
-                    allowedContentTypes: ['audio/*', 'video/*', 'image/*'],
+                    allowedContentTypes: ['audio/*', 'video/*', 'image/*', 'application/octet-stream'],
                     addRandomSuffix: true,
                     maximumSizeInBytes: 300 * 1024 * 1024 // tope de seguridad: 300 MB
                 };

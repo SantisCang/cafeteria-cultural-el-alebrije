@@ -72,7 +72,7 @@ export default async function handler(req, res) {
             res.status(200).json({ ok: true });
         } catch (err) {
             console.error('Error guardando contenido:', err);
-            res.status(500).json({ error: 'No se pudo guardar el cambio' });
+            res.status(500).json({ error: err && err.message ? err.message : 'No se pudo guardar el cambio' });
         }
         return;
     }

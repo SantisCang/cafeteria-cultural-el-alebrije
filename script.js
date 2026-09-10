@@ -101,22 +101,34 @@ async function guardarContenidoEnServidor(tipo, datos){
     }
 
     try {
+        const cuerpo = JSON.stringify({ tipo, datos, password: clave });
+        const pesoKB = Math.round(cuerpo.length / 1024);
+        if (pesoKB > 800) {
+            console.warn(`Aviso: "${tipo}" pesa ~${pesoKB} KB. Si algo quedó guardado como archivo base64 en vez de subirse aparte, esto puede fallar.`);
+        }
         const resp = await fetch(`${API_BASE_URL}/content`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo, datos, password: clave })
+            body: cuerpo
         });
         if (resp.status === 401) {
             alert('Contraseña incorrecta. El cambio no se guardó.');
             sessionStorage.removeItem('elalebrije-admin-clave');
             return false;
         }
-        if (!resp.ok) throw new Error('Respuesta no válida');
+        if (!resp.ok) {
+            let detalle = '';
+            try {
+                const err = await resp.json();
+                detalle = err.error || '';
+            } catch (e) { /* la respuesta no traía JSON */ }
+            throw new Error(detalle || `Respuesta no válida (código ${resp.status})`);
+        }
         sessionStorage.setItem('elalebrije-admin-clave', clave);
         return true;
     } catch (err) {
         console.error('Error guardando en servidor:', err);
-        alert('No se pudo guardar el cambio. Revisa tu conexión e intenta de nuevo.');
+        alert('No se pudo guardar el cambio: ' + (err.message || 'revisa tu conexión e intenta de nuevo.'));
         return false;
     }
 }
@@ -730,7 +742,7 @@ function renderFormularioPodcast(){
                 if (estadoEl) estadoEl.textContent = '✓ Audio subido correctamente';
             } catch (err) {
                 console.error('Error subiendo audio:', err);
-                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir el audio. Intenta de nuevo.';
+                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir: ' + (err && err.message ? err.message : 'intenta de nuevo.');
             } finally {
                 input.disabled = false;
             }
@@ -886,7 +898,7 @@ function renderFormularioVideos(){
                 if (estadoEl) estadoEl.textContent = '✓ Video subido correctamente';
             } catch (err) {
                 console.error('Error subiendo video:', err);
-                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir el video. Intenta de nuevo.';
+                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir: ' + (err && err.message ? err.message : 'intenta de nuevo.');
             } finally {
                 input.disabled = false;
             }
