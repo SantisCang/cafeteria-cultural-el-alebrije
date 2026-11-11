@@ -1,15 +1,15 @@
 // api/frase-dia.js
 //
 // GET  -> devuelve la imagen del día si sigue vigente (o null si ya pasaron
-//         las 24 horas, o si nunca se publicó una).
+//         la semana, o si nunca se publicó una).
 // POST -> guarda una nueva imagen (protegida con contraseña). Se guarda con
-//         un "TTL" (tiempo de vida) de 24 horas exactas: pasado ese tiempo,
+//         un "TTL" (tiempo de vida) de 1 semana exacta: pasado ese tiempo,
 //         el propio servidor la borra solo, sin que nadie tenga que hacer
 //         nada. No hace falta "quitarla" a mano.
 
 import { kv } from '@vercel/kv';
 
-const SEGUNDOS_24H = 24 * 60 * 60;
+const SEGUNDOS_VIGENCIA = 7 * 24 * 60 * 60; // 1 semana completa
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
                 res.status(400).json({ error: 'Falta la imagen' });
                 return;
             }
-            await kv.set('contenido:frase-dia', imagen, { ex: SEGUNDOS_24H });
+            await kv.set('contenido:frase-dia', imagen, { ex: SEGUNDOS_VIGENCIA });
             res.status(200).json({ ok: true });
         } catch (err) {
             console.error('Error guardando frase del día:', err);

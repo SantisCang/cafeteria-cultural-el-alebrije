@@ -1839,7 +1839,7 @@ function inyectarBotonesEdicionMenu(){
 
 // Cuando llega el contenido del servidor: aplica noticias, promos y menú.
 // =====================================================================
-// FRASE / IMAGEN DEL DÍA (reemplaza el logo del hero, dura 24 horas)
+// FRASE / IMAGEN DEL DÍA (reemplaza el logo del hero, dura 1 semana)
 // =====================================================================
 const heroLogoImg = document.getElementById('hero-logo-img');
 const LOGO_ORIGINAL_SRC = 'imagenes/comida1.png';
@@ -1965,7 +1965,7 @@ if (fraseDiaModalGuardar) {
         if (heroLogoImg) heroLogoImg.src = fraseDiaBase64Nueva;
         aplicarFraseActiva(true);
         fraseDiaModal.classList.remove('open');
-        alert('Publicada: se verá para todos en el espacio del logo durante las próximas 24 horas, y después vuelve a salir el logo solo.');
+        alert('Publicada: se verá para todos en el espacio del logo durante la próxima semana, y después vuelve a salir el logo solo.');
     });
 }
 
@@ -2033,66 +2033,128 @@ async function subirImagenAdmin(archivo, prefijo, onProgreso){
 }
 
 // =====================================================================
-// GALERÍA DE HONOR
+// GALERÍA DE HONOR (fotos sueltas y álbumes de hasta 15 fotos)
 // =====================================================================
-// Lista por defecto (vacía). Las fotos las sube el administrador desde el
-// panel oculto y se guardan para todos los visitantes.
+// Lista por defecto (vacía). Cada elemento puede ser:
+//   - una foto suelta:  { imagen, titulo, descripcion }
+//   - un álbum:         { titulo, descripcion, fotos: [ { imagen, descripcion } ] }
+// Todo lo sube el administrador desde el panel oculto.
 const GALERIA = [];
+const MAX_FOTOS_ALBUM = 15;
 
 function obtenerGaleriaActual(){
     return contenidoServidor.galeria || GALERIA;
+}
+
+function esAlbum(item){
+    return !!item && Array.isArray(item.fotos);
 }
 
 function pintarGaleria(){
     const grid = document.getElementById('galeria-grid');
     const vacio = document.getElementById('galeria-vacio');
     if (!grid) return;
-    const fotos = obtenerGaleriaActual();
+    const items = obtenerGaleriaActual();
     grid.innerHTML = '';
-    if (vacio) vacio.hidden = fotos.length > 0;
-    fotos.forEach((foto, i) => {
+
+    // Fotos sueltas, en orden, para pasar de una a otra dentro del visor.
+    const sueltas = items
+        .filter((it) => !esAlbum(it) && it.imagen)
+        .map((it) => ({ imagen: it.imagen, titulo: it.titulo || '', descripcion: it.descripcion || '' }));
+    let contadorSueltas = 0;
+    let pintados = 0;
+
+    items.forEach((item) => {
+        const album = esAlbum(item);
+        const fotosAlbum = album ? item.fotos.filter((f) => f && f.imagen) : [];
+        const portada = album ? (fotosAlbum[0] ? fotosAlbum[0].imagen : '') : item.imagen;
+        if (!portada) return;
+        const idxSuelta = album ? -1 : contadorSueltas++;
+        pintados++;
+
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'galeria-item';
-        btn.setAttribute('data-i', i);
-        btn.setAttribute('aria-label', `Ver en grande: ${foto.titulo || 'foto ' + (i + 1)}`);
+        btn.className = 'galeria-item' + (album ? ' galeria-item-album' : '');
+        btn.setAttribute('aria-label', album
+            ? `Abrir álbum: ${item.titulo || 'álbum de fotos'} (${fotosAlbum.length} fotos)`
+            : `Ver en grande: ${item.titulo || 'foto'}`);
+        const insignia = album
+            ? `<span class="galeria-album-badge">Álbum · ${fotosAlbum.length} ${fotosAlbum.length === 1 ? 'foto' : 'fotos'}</span>`
+            : '';
+        const hayTexto = item.titulo || item.descripcion;
         btn.innerHTML = `
-            <span class="galeria-item-foto"><img src="${escaparHtml(foto.imagen)}" alt="${escaparHtml(foto.titulo || 'Foto de la Galería de Honor')}" loading="lazy"></span>
-            ${(foto.titulo || foto.descripcion) ? `<span class="galeria-item-info">${foto.titulo ? `<strong>${escaparHtml(foto.titulo)}</strong>` : ''}${foto.descripcion ? `<small>${escaparHtml(foto.descripcion)}</small>` : ''}</span>` : ''}
+            <span class="galeria-item-foto"><img src="${escaparHtml(portada)}" alt="${escaparHtml(item.titulo || 'Foto de la Galería de Honor')}" loading="lazy">${insignia}</span>
+            ${hayTexto ? `<span class="galeria-item-info">${item.titulo ? `<strong>${escaparHtml(item.titulo)}</strong>` : ''}${item.descripcion ? `<small>${escaparHtml(item.descripcion)}</small>` : ''}</span>` : ''}
         `;
-        btn.addEventListener('click', () => abrirLightboxGaleria(i, btn));
+        btn.addEventListener('click', () => {
+            if (album) {
+                const lista = fotosAlbum.map((f) => ({ imagen: f.imagen, titulo: item.titulo || '', descripcion: f.descripcion || '' }));
+                abrirLightboxGaleria(lista, 0, btn, true);
+            } else {
+                abrirLightboxGaleria(sueltas, idxSuelta, btn, false);
+            }
+        });
         grid.appendChild(btn);
     });
+    if (vacio) vacio.hidden = pintados > 0;
 }
 
-// ---- Visor de foto ampliada ----
+// ---- Visor de foto ampliada (lo usan la galería, los álbumes y los libros) ----
 const galeriaLightbox = document.getElementById('galeria-lightbox');
 const galeriaLbImg = document.getElementById('galeria-lb-img');
 const galeriaLbTitulo = document.getElementById('galeria-lb-titulo');
 const galeriaLbDesc = document.getElementById('galeria-lb-desc');
+const galeriaLbContador = document.getElementById('galeria-lb-contador');
+const galeriaLbMinis = document.getElementById('galeria-lb-minis');
+let galeriaLbLista = [];
 let galeriaLbIndice = 0;
 let galeriaLbOrigen = null;
+let galeriaLbConMinis = false;
+
+function construirMiniaturasLightbox(){
+    if (!galeriaLbMinis) return;
+    galeriaLbMinis.innerHTML = '';
+    if (!galeriaLbConMinis || galeriaLbLista.length < 2) return;
+    galeriaLbLista.forEach((foto, k) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', `Ver foto ${k + 1}`);
+        b.innerHTML = `<img src="${escaparHtml(foto.imagen)}" alt="">`;
+        b.addEventListener('click', () => mostrarFotoLightbox(k));
+        galeriaLbMinis.appendChild(b);
+    });
+}
 
 function mostrarFotoLightbox(i){
-    const fotos = obtenerGaleriaActual();
-    if (!fotos.length) return;
-    galeriaLbIndice = (i + fotos.length) % fotos.length;
-    const foto = fotos[galeriaLbIndice];
+    const n = galeriaLbLista.length;
+    if (!n) return;
+    galeriaLbIndice = (i + n) % n;
+    const foto = galeriaLbLista[galeriaLbIndice];
     galeriaLbImg.src = foto.imagen;
-    galeriaLbImg.alt = foto.titulo || 'Foto de la Galería de Honor';
+    galeriaLbImg.alt = foto.titulo || 'Foto ampliada';
     galeriaLbTitulo.textContent = foto.titulo || '';
     galeriaLbDesc.textContent = foto.descripcion || '';
     galeriaLbTitulo.hidden = !foto.titulo;
     galeriaLbDesc.hidden = !foto.descripcion;
-    const unica = fotos.length < 2;
-    document.getElementById('galeria-lb-prev').hidden = unica;
-    document.getElementById('galeria-lb-next').hidden = unica;
+    if (galeriaLbContador) galeriaLbContador.textContent = n > 1 ? `${galeriaLbIndice + 1} / ${n}` : '';
+    document.getElementById('galeria-lb-prev').hidden = n < 2;
+    document.getElementById('galeria-lb-next').hidden = n < 2;
+    if (galeriaLbMinis) {
+        galeriaLbMinis.hidden = !(galeriaLbConMinis && n > 1);
+        galeriaLbMinis.querySelectorAll('button').forEach((b, k) => {
+            b.classList.toggle('activa', k === galeriaLbIndice);
+            if (k === galeriaLbIndice && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+        });
+    }
 }
 
-function abrirLightboxGaleria(i, origen){
-    if (!galeriaLightbox) return;
+function abrirLightboxGaleria(lista, indice, origen, conMiniaturas){
+    if (!galeriaLightbox || !lista || !lista.length) return;
+    galeriaLbLista = lista;
     galeriaLbOrigen = origen || null;
-    mostrarFotoLightbox(i);
+    galeriaLbConMinis = !!conMiniaturas;
+    construirMiniaturasLightbox();
+    mostrarFotoLightbox(indice || 0);
     galeriaLightbox.hidden = false;
     document.body.classList.add('galeria-lb-abierto');
     document.getElementById('galeria-lb-cerrar').focus();
@@ -2103,7 +2165,7 @@ function cerrarLightboxGaleria(){
     galeriaLightbox.hidden = true;
     galeriaLbImg.src = '';
     document.body.classList.remove('galeria-lb-abierto');
-    if (galeriaLbOrigen) galeriaLbOrigen.focus();
+    if (galeriaLbOrigen && galeriaLbOrigen.focus) galeriaLbOrigen.focus();
 }
 
 if (galeriaLightbox) {
@@ -2127,54 +2189,156 @@ const galeriaModalLista = document.getElementById('galeria-modal-lista');
 const galeriaModalArchivos = document.getElementById('galeria-modal-archivos');
 const galeriaModalEstado = document.getElementById('galeria-modal-estado');
 const galeriaModalGuardar = document.getElementById('galeria-modal-guardar');
+const galeriaModalAlbum = document.getElementById('galeria-modal-album');
 let galeriaFormulario = [];
+
+function moverEnLista(lista, i, dir){
+    const j = i + dir;
+    if (j < 0 || j >= lista.length) return false;
+    [lista[i], lista[j]] = [lista[j], lista[i]];
+    return true;
+}
 
 function renderFormularioGaleria(){
     if (!galeriaModalLista) return;
+    const e = escaparHtml;
     galeriaModalLista.innerHTML = '';
     if (!galeriaFormulario.length) {
-        galeriaModalLista.innerHTML = '<p class="noticias-vacio" style="padding:10px 0;">Todavía no hay fotos. Usa el botón de arriba para subir las primeras.</p>';
+        galeriaModalLista.innerHTML = '<p class="noticias-vacio" style="padding:10px 0;">Todavía no hay fotos ni álbumes. Usa los botones de arriba para agregar.</p>';
         return;
     }
-    galeriaFormulario.forEach((foto, i) => {
+    galeriaFormulario.forEach((item, i) => {
         const fila = document.createElement('div');
-        fila.className = 'noticia-form galeria-form-fila';
-        fila.innerHTML = `
-            <div class="galeria-form-miniatura"><img src="${escaparHtml(foto.imagen)}" alt="Vista previa"></div>
-            <div class="galeria-form-campos">
-                <label>Título</label>
-                <input type="text" placeholder="Título de la foto" maxlength="80" value="${escaparHtml(foto.titulo)}" data-campo="titulo" data-i="${i}">
-                <label style="margin-top:10px">Descripción corta</label>
-                <textarea maxlength="240" placeholder="Una o dos líneas sobre esta foto" data-campo="descripcion" data-i="${i}">${escaparHtml(foto.descripcion)}</textarea>
-                <div class="galeria-form-acciones">
-                    <button type="button" class="galeria-mover" data-mover="-1" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Subir de lugar">↑</button>
-                    <button type="button" class="galeria-mover" data-mover="1" data-i="${i}" ${i === galeriaFormulario.length - 1 ? 'disabled' : ''} aria-label="Bajar de lugar">↓</button>
-                    <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar foto</button>
+        const ultimo = i === galeriaFormulario.length - 1;
+        const accionesItem = `
+            <button type="button" class="galeria-mover" data-mover="-1" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Subir de lugar">↑</button>
+            <button type="button" class="galeria-mover" data-mover="1" data-i="${i}" ${ultimo ? 'disabled' : ''} aria-label="Bajar de lugar">↓</button>`;
+        if (esAlbum(item)) {
+            const n = item.fotos.length;
+            fila.className = 'noticia-form galeria-album-form';
+            fila.innerHTML = `
+                <div class="galeria-album-cabecera"><strong>Álbum de fotos</strong><span>${n} / ${MAX_FOTOS_ALBUM} fotos</span></div>
+                <label>Título del álbum</label>
+                <input type="text" maxlength="80" placeholder="Título del álbum" value="${e(item.titulo)}" data-campo="titulo" data-i="${i}">
+                <label style="margin-top:10px">Descripción del álbum (opcional)</label>
+                <textarea maxlength="240" placeholder="Una o dos líneas sobre este álbum" data-campo="descripcion" data-i="${i}">${e(item.descripcion)}</textarea>
+                <div class="galeria-album-fotos">
+                    ${item.fotos.map((f, j) => `
+                        <div class="galeria-album-foto">
+                            <div class="galeria-album-foto-img"><img src="${e(f.imagen)}" alt="Foto ${j + 1}"><span>${j + 1}</span></div>
+                            <textarea maxlength="240" placeholder="Descripción de esta foto (opcional)" data-album-desc data-i="${i}" data-j="${j}">${e(f.descripcion)}</textarea>
+                            <div class="galeria-form-acciones">
+                                <button type="button" class="galeria-mover" data-album-mover="-1" data-i="${i}" data-j="${j}" ${j === 0 ? 'disabled' : ''} aria-label="Mover antes">↑</button>
+                                <button type="button" class="galeria-mover" data-album-mover="1" data-i="${i}" data-j="${j}" ${j === n - 1 ? 'disabled' : ''} aria-label="Mover después">↓</button>
+                                <button type="button" class="noticia-form-eliminar" data-album-quitar data-i="${i}" data-j="${j}">Quitar</button>
+                            </div>
+                        </div>`).join('')}
                 </div>
-            </div>
-        `;
+                <label class="galeria-subir galeria-subir-mini" for="album-archivos-${i}" ${n >= MAX_FOTOS_ALBUM ? 'hidden' : ''}>Agregar fotos al álbum<small>Caben ${MAX_FOTOS_ALBUM - n} más (puedes elegir varias a la vez)</small></label>
+                <input type="file" id="album-archivos-${i}" accept="image/*" multiple hidden data-album-subir data-i="${i}">
+                <p class="galeria-subida-estado" data-album-estado="${i}"></p>
+                <div class="galeria-form-acciones">
+                    ${accionesItem}
+                    <button type="button" class="noticia-form-eliminar" data-eliminar data-i="${i}">Eliminar álbum</button>
+                </div>`;
+        } else {
+            fila.className = 'noticia-form galeria-form-fila';
+            fila.innerHTML = `
+                <div class="galeria-form-miniatura"><img src="${e(item.imagen)}" alt="Vista previa"></div>
+                <div class="galeria-form-campos">
+                    <label>Título</label>
+                    <input type="text" placeholder="Título de la foto" maxlength="80" value="${e(item.titulo)}" data-campo="titulo" data-i="${i}">
+                    <label style="margin-top:10px">Descripción corta</label>
+                    <textarea maxlength="240" placeholder="Una o dos líneas sobre esta foto" data-campo="descripcion" data-i="${i}">${e(item.descripcion)}</textarea>
+                    <div class="galeria-form-acciones">
+                        ${accionesItem}
+                        <button type="button" class="noticia-form-eliminar" data-eliminar data-i="${i}">Eliminar foto</button>
+                    </div>
+                </div>`;
+        }
         galeriaModalLista.appendChild(fila);
     });
-    galeriaModalLista.querySelectorAll('input[data-campo], textarea[data-campo]').forEach((el) => {
+
+    const L = galeriaModalLista;
+    L.querySelectorAll('input[data-campo], textarea[data-campo]').forEach((el) => {
         el.addEventListener('input', () => {
             galeriaFormulario[Number(el.getAttribute('data-i'))][el.getAttribute('data-campo')] = el.value;
         });
     });
-    galeriaModalLista.querySelectorAll('.galeria-mover').forEach((btn) => {
+    L.querySelectorAll('textarea[data-album-desc]').forEach((el) => {
+        el.addEventListener('input', () => {
+            galeriaFormulario[Number(el.getAttribute('data-i'))].fotos[Number(el.getAttribute('data-j'))].descripcion = el.value;
+        });
+    });
+    L.querySelectorAll('[data-mover]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (moverEnLista(galeriaFormulario, Number(btn.getAttribute('data-i')), Number(btn.getAttribute('data-mover')))) renderFormularioGaleria();
+        });
+    });
+    L.querySelectorAll('[data-eliminar]').forEach((btn) => {
         btn.addEventListener('click', () => {
             const i = Number(btn.getAttribute('data-i'));
-            const j = i + Number(btn.getAttribute('data-mover'));
-            if (j < 0 || j >= galeriaFormulario.length) return;
-            [galeriaFormulario[i], galeriaFormulario[j]] = [galeriaFormulario[j], galeriaFormulario[i]];
+            if (esAlbum(galeriaFormulario[i]) && galeriaFormulario[i].fotos.length && !confirm('¿Eliminar este álbum completo con todas sus fotos?')) return;
+            galeriaFormulario.splice(i, 1);
             renderFormularioGaleria();
         });
     });
-    galeriaModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+    L.querySelectorAll('[data-album-mover]').forEach((btn) => {
         btn.addEventListener('click', () => {
-            galeriaFormulario.splice(Number(btn.getAttribute('data-i')), 1);
+            const fotos = galeriaFormulario[Number(btn.getAttribute('data-i'))].fotos;
+            if (moverEnLista(fotos, Number(btn.getAttribute('data-j')), Number(btn.getAttribute('data-album-mover')))) renderFormularioGaleria();
+        });
+    });
+    L.querySelectorAll('[data-album-quitar]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            galeriaFormulario[Number(btn.getAttribute('data-i'))].fotos.splice(Number(btn.getAttribute('data-j')), 1);
             renderFormularioGaleria();
         });
     });
+    L.querySelectorAll('input[data-album-subir]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const archivos = Array.from(input.files || []).filter((a) => a.type.startsWith('image/'));
+            input.value = '';
+            subirFotosAlbum(Number(input.getAttribute('data-i')), archivos);
+        });
+    });
+}
+
+// Sube fotos a un álbum (máximo 15 por álbum), una por una.
+async function subirFotosAlbum(i, archivos){
+    const album = galeriaFormulario[i];
+    if (!album || !archivos.length) return;
+    const cupo = MAX_FOTOS_ALBUM - album.fotos.length;
+    let aviso = '';
+    if (cupo <= 0) { alert(`Un álbum puede tener máximo ${MAX_FOTOS_ALBUM} fotos.`); return; }
+    if (archivos.length > cupo) {
+        archivos = archivos.slice(0, cupo);
+        aviso = ` Solo se tomaron ${cupo} porque el máximo es ${MAX_FOTOS_ALBUM}.`;
+    }
+    const estadoEl = galeriaModalLista.querySelector(`[data-album-estado="${i}"]`);
+    galeriaModalGuardar.disabled = true;
+    let subidas = 0;
+    let fallidas = 0;
+    for (let n = 0; n < archivos.length; n++) {
+        if (estadoEl) estadoEl.textContent = `Subiendo foto ${n + 1} de ${archivos.length}... 0%`;
+        try {
+            const url = await subirImagenAdmin(archivos[n], 'album', (pct) => {
+                if (estadoEl) estadoEl.textContent = `Subiendo foto ${n + 1} de ${archivos.length}... ${Math.round(pct)}%`;
+            });
+            album.fotos.push({ imagen: url, descripcion: '' });
+            subidas++;
+        } catch (err) {
+            console.error('Error subiendo foto del álbum:', err);
+            fallidas++;
+            if (err && /contraseña/i.test(err.message || '')) break;
+        }
+    }
+    galeriaModalGuardar.disabled = false;
+    renderFormularioGaleria();
+    const nuevo = galeriaModalLista.querySelector(`[data-album-estado="${i}"]`);
+    if (nuevo) nuevo.textContent = (fallidas
+        ? `${subidas} foto(s) subida(s); ${fallidas} no se pudieron subir. Revisa la contraseña o tu conexión.`
+        : `${subidas} foto(s) agregada(s).`) + aviso;
 }
 
 if (galeriaAdminBtn) {
@@ -2188,6 +2352,15 @@ if (galeriaAdminBtn) {
 if (galeriaModalClose) galeriaModalClose.addEventListener('click', () => galeriaModal.classList.remove('open'));
 if (galeriaModal) galeriaModal.addEventListener('click', (e) => { if (e.target === galeriaModal) galeriaModal.classList.remove('open'); });
 
+if (galeriaModalAlbum) {
+    galeriaModalAlbum.addEventListener('click', () => {
+        galeriaFormulario.push({ titulo: '', descripcion: '', fotos: [] });
+        renderFormularioGaleria();
+        const filas = galeriaModalLista.children;
+        if (filas.length) filas[filas.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+}
+
 if (galeriaModalArchivos) {
     galeriaModalArchivos.addEventListener('change', async () => {
         const archivos = Array.from(galeriaModalArchivos.files || []).filter((a) => a.type.startsWith('image/'));
@@ -2200,10 +2373,10 @@ if (galeriaModalArchivos) {
         // Se suben una por una para no saturar la conexión y para pedir la
         // contraseña (si hace falta) solo una vez.
         for (let n = 0; n < archivos.length; n++) {
-            galeriaModalEstado.textContent = `⏳ Subiendo foto ${n + 1} de ${archivos.length}... 0%`;
+            galeriaModalEstado.textContent = `Subiendo foto ${n + 1} de ${archivos.length}... 0%`;
             try {
                 const url = await subirImagenAdmin(archivos[n], 'galeria', (pct) => {
-                    galeriaModalEstado.textContent = `⏳ Subiendo foto ${n + 1} de ${archivos.length}... ${Math.round(pct)}%`;
+                    galeriaModalEstado.textContent = `Subiendo foto ${n + 1} de ${archivos.length}... ${Math.round(pct)}%`;
                 });
                 galeriaFormulario.push({ imagen: url, titulo: '', descripcion: '' });
                 subidas++;
@@ -2214,8 +2387,8 @@ if (galeriaModalArchivos) {
             }
         }
         galeriaModalEstado.textContent = fallidas
-            ? `⚠️ Se subieron ${subidas} foto(s); ${fallidas} no se pudieron subir. Revisa la contraseña o tu conexión e intenta de nuevo.`
-            : `✓ ${subidas} foto(s) subida(s). Ponles título y descripción y da clic en "Guardar cambios".`;
+            ? `Se subieron ${subidas} foto(s); ${fallidas} no se pudieron subir. Revisa la contraseña o tu conexión e intenta de nuevo.`
+            : `${subidas} foto(s) subida(s). Ponles título y descripción y da clic en "Guardar cambios".`;
         galeriaModalArchivos.disabled = false;
         galeriaModalGuardar.disabled = false;
         renderFormularioGaleria();
@@ -2225,9 +2398,19 @@ if (galeriaModalArchivos) {
 if (galeriaModalGuardar) {
     galeriaModalGuardar.addEventListener('click', async () => {
         galeriaModalGuardar.disabled = true;
-        const datos = galeriaFormulario
-            .filter((f) => f.imagen)
-            .map((f) => ({ imagen: f.imagen, titulo: (f.titulo || '').trim(), descripcion: (f.descripcion || '').trim() }));
+        const datos = galeriaFormulario.map((item) => {
+            if (esAlbum(item)) {
+                const fotos = item.fotos
+                    .filter((f) => f && f.imagen)
+                    .map((f) => ({ imagen: f.imagen, descripcion: (f.descripcion || '').trim() }));
+                return fotos.length
+                    ? { titulo: (item.titulo || '').trim(), descripcion: (item.descripcion || '').trim(), fotos }
+                    : null;
+            }
+            return item.imagen
+                ? { imagen: item.imagen, titulo: (item.titulo || '').trim(), descripcion: (item.descripcion || '').trim() }
+                : null;
+        }).filter(Boolean);
         const ok = await guardarContenidoEnServidor('galeria', datos);
         galeriaModalGuardar.disabled = false;
         if (!ok) return;
@@ -2239,12 +2422,21 @@ if (galeriaModalGuardar) {
 }
 
 // =====================================================================
-// LIBROS DEL MES
+// LIBROS DEL MES (cada libro puede tener hasta 4 fotos; la primera es la portada)
 // =====================================================================
 const LIBROS = [];
+const MAX_FOTOS_LIBRO = 4;
 
 function obtenerLibrosActuales(){
     return contenidoServidor.libros || LIBROS;
+}
+
+// Compatibilidad: los libros guardados antes tenían una sola "imagen".
+function imagenesDeLibro(libro){
+    if (libro && Array.isArray(libro.imagenes) && libro.imagenes.length) {
+        return libro.imagenes.filter(Boolean).slice(0, MAX_FOTOS_LIBRO);
+    }
+    return libro && libro.imagen ? [libro.imagen] : [];
 }
 
 function pintarLibros(){
@@ -2255,19 +2447,29 @@ function pintarLibros(){
     grid.innerHTML = '';
     if (vacio) vacio.hidden = libros.length > 0;
     libros.forEach((libro) => {
+        const fotos = imagenesDeLibro(libro);
+        const lista = fotos.map((src) => ({ imagen: src, titulo: libro.titulo || '', descripcion: libro.autor || '' }));
         const art = document.createElement('article');
         art.className = 'libro-card';
         art.innerHTML = `
-            <div class="libro-portada">
-                ${libro.imagen ? `<img src="${escaparHtml(libro.imagen)}" alt="Portada de ${escaparHtml(libro.titulo || 'el libro')}" loading="lazy">` : '<span class="libro-portada-vacia">📖</span>'}
+            <div class="libro-media">
+                <div class="libro-portada">
+                    ${fotos[0]
+                        ? `<button type="button" class="libro-foto-btn" data-k="0" aria-label="Ver fotos de ${escaparHtml(libro.titulo || 'el libro')}"><img src="${escaparHtml(fotos[0])}" alt="Portada de ${escaparHtml(libro.titulo || 'el libro')}" loading="lazy"></button>`
+                        : '<span class="libro-portada-vacia">Libro</span>'}
+                </div>
+                ${fotos.length > 1 ? `<div class="libro-minis">${fotos.slice(1).map((src, k) => `<button type="button" class="libro-mini" data-k="${k + 1}" aria-label="Ver foto ${k + 2} de ${escaparHtml(libro.titulo || 'el libro')}"><img src="${escaparHtml(src)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
             </div>
             <div class="libro-info">
-                <span class="libro-etiqueta">📖 Libro del mes</span>
+                <span class="libro-etiqueta">Libro del mes</span>
                 <h3>${escaparHtml(libro.titulo)}</h3>
                 ${libro.autor ? `<p class="libro-autor">${escaparHtml(libro.autor)}</p>` : ''}
                 <p class="libro-desc">${escaparHtml(libro.descripcion)}</p>
             </div>
         `;
+        art.querySelectorAll('[data-k]').forEach((b) => {
+            b.addEventListener('click', () => abrirLightboxGaleria(lista, Number(b.getAttribute('data-k')), b, true));
+        });
         grid.appendChild(art);
     });
 }
@@ -2283,67 +2485,120 @@ let librosFormulario = [];
 
 function renderFormularioLibros(){
     if (!librosModalLista) return;
+    const e = escaparHtml;
     librosModalLista.innerHTML = '';
     librosFormulario.forEach((libro, i) => {
+        const n = libro.imagenes.length;
         const fila = document.createElement('div');
         fila.className = 'noticia-form';
         fila.innerHTML = `
             <label>Título del libro</label>
-            <input type="text" placeholder="Título" maxlength="120" value="${escaparHtml(libro.titulo)}" data-campo="titulo" data-i="${i}">
+            <input type="text" placeholder="Título" maxlength="120" value="${e(libro.titulo)}" data-campo="titulo" data-i="${i}">
             <label style="margin-top:10px">Autor/a (opcional)</label>
-            <input type="text" placeholder="Nombre del autor o autora" maxlength="120" value="${escaparHtml(libro.autor)}" data-campo="autor" data-i="${i}">
+            <input type="text" placeholder="Nombre del autor o autora" maxlength="120" value="${e(libro.autor)}" data-campo="autor" data-i="${i}">
             <label style="margin-top:10px">Descripción</label>
-            <textarea maxlength="600" placeholder="¿Por qué lo recomiendas? ¿De qué trata?" data-campo="descripcion" data-i="${i}">${escaparHtml(libro.descripcion)}</textarea>
-            <label style="margin-top:10px">Imagen (portada)</label>
-            <input type="file" accept="image/*" data-archivo="imagen" data-i="${i}">
-            <p class="galeria-subida-estado" data-estado-i="${i}">${libro.imagen ? '✓ Portada cargada' : ''}</p>
-            ${libro.imagen ? `<div class="libros-form-preview"><img src="${escaparHtml(libro.imagen)}" alt="Vista previa de la portada"></div>` : ''}
+            <textarea maxlength="600" placeholder="¿Por qué lo recomiendas? ¿De qué trata?" data-campo="descripcion" data-i="${i}">${e(libro.descripcion)}</textarea>
+            <label style="margin-top:10px">Fotos del libro (máximo ${MAX_FOTOS_LIBRO}) · ${n} / ${MAX_FOTOS_LIBRO}</label>
+            <div class="libros-form-fotos">
+                ${libro.imagenes.map((src, k) => `
+                    <div class="libros-form-foto">
+                        <img src="${e(src)}" alt="Foto ${k + 1}">
+                        <span class="libros-form-etiqueta">${k === 0 ? 'Portada' : 'Foto ' + (k + 1)}</span>
+                        <div class="libros-form-botones">
+                            ${k > 0 ? `<button type="button" data-portada data-i="${i}" data-k="${k}">Hacer portada</button>` : ''}
+                            <button type="button" data-quitar-foto data-i="${i}" data-k="${k}">Quitar</button>
+                        </div>
+                    </div>`).join('')}
+            </div>
+            <label class="galeria-subir galeria-subir-mini" for="libro-archivos-${i}" ${n >= MAX_FOTOS_LIBRO ? 'hidden' : ''}>Agregar fotos<small>Caben ${MAX_FOTOS_LIBRO - n} más (puedes elegir varias a la vez)</small></label>
+            <input type="file" id="libro-archivos-${i}" accept="image/*" multiple hidden data-libro-subir data-i="${i}">
+            <p class="galeria-subida-estado" data-estado-i="${i}"></p>
             <div style="margin-top:10px; text-align:right;">
-                <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este libro</button>
+                <button type="button" class="noticia-form-eliminar" data-eliminar data-i="${i}">Eliminar este libro</button>
             </div>
         `;
         librosModalLista.appendChild(fila);
     });
-    librosModalLista.querySelectorAll('input[data-campo], textarea[data-campo]').forEach((el) => {
+    const L = librosModalLista;
+    L.querySelectorAll('input[data-campo], textarea[data-campo]').forEach((el) => {
         el.addEventListener('input', () => {
             librosFormulario[Number(el.getAttribute('data-i'))][el.getAttribute('data-campo')] = el.value;
         });
     });
-    librosModalLista.querySelectorAll('input[type="file"][data-archivo]').forEach((input) => {
-        input.addEventListener('change', async () => {
-            const archivo = input.files[0];
-            if (!archivo) return;
-            const i = Number(input.getAttribute('data-i'));
-            const estadoEl = librosModalLista.querySelector(`[data-estado-i="${i}"]`);
-            input.disabled = true;
-            librosModalGuardar.disabled = true;
-            if (estadoEl) estadoEl.textContent = '⏳ Subiendo portada... 0%';
-            try {
-                const url = await subirImagenAdmin(archivo, 'libro', (pct) => {
-                    if (estadoEl) estadoEl.textContent = `⏳ Subiendo portada... ${Math.round(pct)}%`;
-                });
-                librosFormulario[i].imagen = url;
-                renderFormularioLibros();
-            } catch (err) {
-                console.error('Error subiendo portada:', err);
-                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir: ' + (err && err.message ? err.message : 'intenta de nuevo.');
-                input.disabled = false;
-            } finally {
-                librosModalGuardar.disabled = false;
-            }
+    L.querySelectorAll('[data-portada]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const fotos = librosFormulario[Number(btn.getAttribute('data-i'))].imagenes;
+            const [foto] = fotos.splice(Number(btn.getAttribute('data-k')), 1);
+            fotos.unshift(foto);
+            renderFormularioLibros();
         });
     });
-    librosModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+    L.querySelectorAll('[data-quitar-foto]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            librosFormulario[Number(btn.getAttribute('data-i'))].imagenes.splice(Number(btn.getAttribute('data-k')), 1);
+            renderFormularioLibros();
+        });
+    });
+    L.querySelectorAll('[data-eliminar]').forEach((btn) => {
         btn.addEventListener('click', () => {
             librosFormulario.splice(Number(btn.getAttribute('data-i')), 1);
             renderFormularioLibros();
         });
     });
+    L.querySelectorAll('input[data-libro-subir]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const archivos = Array.from(input.files || []).filter((a) => a.type.startsWith('image/'));
+            input.value = '';
+            subirFotosLibro(Number(input.getAttribute('data-i')), archivos);
+        });
+    });
+}
+
+// Sube las fotos de un libro (máximo 4), una por una.
+async function subirFotosLibro(i, archivos){
+    const libro = librosFormulario[i];
+    if (!libro || !archivos.length) return;
+    const cupo = MAX_FOTOS_LIBRO - libro.imagenes.length;
+    let aviso = '';
+    if (cupo <= 0) { alert(`Cada libro puede tener máximo ${MAX_FOTOS_LIBRO} fotos.`); return; }
+    if (archivos.length > cupo) {
+        archivos = archivos.slice(0, cupo);
+        aviso = ` Solo se tomaron ${cupo} porque el máximo es ${MAX_FOTOS_LIBRO}.`;
+    }
+    const estadoEl = librosModalLista.querySelector(`[data-estado-i="${i}"]`);
+    librosModalGuardar.disabled = true;
+    let subidas = 0;
+    let fallidas = 0;
+    for (let n = 0; n < archivos.length; n++) {
+        if (estadoEl) estadoEl.textContent = `Subiendo foto ${n + 1} de ${archivos.length}... 0%`;
+        try {
+            const url = await subirImagenAdmin(archivos[n], 'libro', (pct) => {
+                if (estadoEl) estadoEl.textContent = `Subiendo foto ${n + 1} de ${archivos.length}... ${Math.round(pct)}%`;
+            });
+            libro.imagenes.push(url);
+            subidas++;
+        } catch (err) {
+            console.error('Error subiendo foto del libro:', err);
+            fallidas++;
+            if (err && /contraseña/i.test(err.message || '')) break;
+        }
+    }
+    librosModalGuardar.disabled = false;
+    renderFormularioLibros();
+    const nuevo = librosModalLista.querySelector(`[data-estado-i="${i}"]`);
+    if (nuevo) nuevo.textContent = (fallidas
+        ? `${subidas} foto(s) subida(s); ${fallidas} no se pudieron subir. Revisa la contraseña o tu conexión.`
+        : `${subidas} foto(s) agregada(s).`) + aviso;
 }
 
 if (librosAdminBtn) {
     librosAdminBtn.addEventListener('click', () => {
-        librosFormulario = JSON.parse(JSON.stringify(obtenerLibrosActuales()));
+        librosFormulario = obtenerLibrosActuales().map((l) => ({
+            titulo: l.titulo || '',
+            autor: l.autor || '',
+            descripcion: l.descripcion || '',
+            imagenes: imagenesDeLibro(l)
+        }));
         renderFormularioLibros();
         librosModal.classList.add('open');
     });
@@ -2352,7 +2607,7 @@ if (librosModalClose) librosModalClose.addEventListener('click', () => librosMod
 if (librosModal) librosModal.addEventListener('click', (e) => { if (e.target === librosModal) librosModal.classList.remove('open'); });
 if (librosModalAgregar) {
     librosModalAgregar.addEventListener('click', () => {
-        librosFormulario.push({ imagen: '', titulo: '', autor: '', descripcion: '' });
+        librosFormulario.push({ imagenes: [], titulo: '', autor: '', descripcion: '' });
         renderFormularioLibros();
     });
 }
@@ -2360,8 +2615,14 @@ if (librosModalGuardar) {
     librosModalGuardar.addEventListener('click', async () => {
         librosModalGuardar.disabled = true;
         const datos = librosFormulario
-            .filter((l) => (l.titulo || '').trim() || l.imagen)
-            .map((l) => ({ imagen: l.imagen || '', titulo: (l.titulo || '').trim(), autor: (l.autor || '').trim(), descripcion: (l.descripcion || '').trim() }));
+            .filter((l) => (l.titulo || '').trim() || l.imagenes.length)
+            .map((l) => ({
+                imagen: l.imagenes[0] || '',      // portada (compatibilidad)
+                imagenes: l.imagenes.slice(0, MAX_FOTOS_LIBRO),
+                titulo: (l.titulo || '').trim(),
+                autor: (l.autor || '').trim(),
+                descripcion: (l.descripcion || '').trim()
+            }));
         const ok = await guardarContenidoEnServidor('libros', datos);
         librosModalGuardar.disabled = false;
         if (!ok) return;

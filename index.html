@@ -17,7 +17,7 @@
             <p class="noticias-modal-sub">
                 Sube una imagen (saludo, día festivo, recordatorio, etc.). Va a aparecer en el
                 espacio del logo, en la primera pantalla del sitio, para TODOS los visitantes,
-                durante las próximas 24 horas exactas — después vuelve a aparecer el logo solo,
+                durante 1 semana completa — después vuelve a aparecer el logo solo,
                 no hay que quitarla a mano.
             </p>
             <div class="noticia-form">
@@ -29,7 +29,7 @@
             </div>
             <div class="noticias-modal-acciones">
                 <button type="button" class="frase-dia-quitar" id="frase-dia-modal-quitar">Quitar la actual</button>
-                <button type="button" class="pedido-modal-enviar" id="frase-dia-modal-guardar">Publicar (24 horas)</button>
+                <button type="button" class="pedido-modal-enviar" id="frase-dia-modal-guardar">Publicar (1 semana)</button>
             </div>
         </div>
     </div>
@@ -280,8 +280,9 @@
             <button class="noticias-modal-close" id="libros-modal-close" aria-label="Cerrar">✕</button>
             <h3>📚 Administrar Libros del mes</h3>
             <p class="noticias-modal-sub">
-                Agrega, edita o elimina los libros recomendados. Sube la portada y escribe el título
-                y una descripción. Al guardar se actualiza para todos los visitantes.
+                Agrega, edita o elimina los libros recomendados. Cada libro puede llevar hasta 4 fotos
+                (la primera es la portada), además de título, autor y descripción. Al guardar se
+                actualiza para todos los visitantes.
             </p>
 
             <div class="noticias-modal-lista" id="libros-modal-lista"></div>
@@ -1355,9 +1356,9 @@
             <button class="noticias-modal-close" id="galeria-modal-close" aria-label="Cerrar">✕</button>
             <h3>🖼️ Administrar Galería de Honor</h3>
             <p class="noticias-modal-sub">
-                Sube todas las fotos que quieras (puedes elegir varias a la vez) y ponle a cada una un
-                título y una descripción corta. Al darle a "Guardar cambios" se actualiza para todos
-                los visitantes del sitio.
+                Sube todas las fotos sueltas que quieras (puedes elegir varias a la vez) con su título y
+                descripción, o crea un álbum de hasta 15 fotos donde cada foto puede llevar su propia
+                descripción (opcional). Al darle a "Guardar cambios" se actualiza para todos los visitantes.
             </p>
 
             <label class="galeria-subir" for="galeria-modal-archivos">
@@ -1366,6 +1367,7 @@
             </label>
             <input type="file" id="galeria-modal-archivos" accept="image/*" multiple hidden>
             <p class="galeria-subida-estado" id="galeria-modal-estado" aria-live="polite"></p>
+            <button type="button" class="noticias-modal-agregar" id="galeria-modal-album">+ Crear álbum de fotos (máx. 15 fotos)</button>
 
             <div class="noticias-modal-lista" id="galeria-modal-lista"></div>
 
@@ -1384,6 +1386,8 @@
                 <h3 id="galeria-lb-titulo"></h3>
                 <p id="galeria-lb-desc"></p>
             </figcaption>
+            <div class="galeria-lb-contador" id="galeria-lb-contador"></div>
+            <div class="galeria-lb-minis" id="galeria-lb-minis"></div>
         </figure>
         <button type="button" class="galeria-lb-nav galeria-lb-next" id="galeria-lb-next" aria-label="Foto siguiente">›</button>
     </div>

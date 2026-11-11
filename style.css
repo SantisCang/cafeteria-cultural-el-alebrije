@@ -2917,7 +2917,7 @@ body.dark-mode .transferencia-nota {
     position: fixed;
     inset: 0;
     z-index: 2500;
-    background-color: rgba(10, 7, 4, 0.97);
+    background-color: rgba(10, 7, 4, 0.985);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4002,3 +4002,218 @@ body.dark-mode .libros-band .libro-info h3 { color: #f1f7e4; }
 body.dark-mode .libros-band .libro-info .libro-autor { color: #9fe05a; }
 body.dark-mode .libros-band .libro-info .libro-desc { color: #c5d2ae; }
 body.dark-mode .libros-band .libro-portada { background-color: #2a3a1c; }
+
+
+/* =====================================================
+   ÁLBUMES (Galería de Honor) y FOTOS DE LIBROS
+   ===================================================== */
+.galeria-item-foto { position: relative; }
+.galeria-album-badge {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-color: rgba(90, 15, 32, 0.92);
+    color: #f6dd8c;
+    border: 1px solid rgba(243, 215, 122, 0.6);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 30px;
+    letter-spacing: 0.2px;
+}
+.galeria-band .galeria-item-album {
+    box-shadow: 0 10px 26px rgba(30, 0, 8, 0.45), 7px 7px 0 -1px rgba(212, 167, 44, 0.55), 14px 14px 0 -2px rgba(212, 167, 44, 0.28);
+}
+
+/* Visor: contador y miniaturas */
+.galeria-lb-contador {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f3d77a;
+    letter-spacing: 1px;
+}
+.galeria-lb-contador:empty { display: none; }
+.galeria-lb-figura .galeria-lb-minis {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 12px auto 0;
+    padding: 4px;
+    max-width: min(92vw, 900px);
+    overflow-x: auto;
+}
+.galeria-lb-figura .galeria-lb-minis[hidden] { display: none; }
+.galeria-lb-minis button {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 48px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    background: none;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.galeria-lb-minis button:hover { opacity: 1; }
+.galeria-lb-minis button.activa { opacity: 1; border-color: #f3d77a; }
+.galeria-lb-figura .galeria-lb-minis img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+    border-radius: 0;
+    box-shadow: none;
+    display: block;
+}
+.galeria-lightbox { overflow-y: auto; }
+.galeria-lb-figura img#galeria-lb-img { max-height: 62vh; }
+
+/* Panel de administración: álbum */
+.galeria-subir[hidden] { display: none; }
+.galeria-subir-mini { padding: 10px; font-size: 13px; margin-top: 10px; }
+.galeria-album-form { border-color: #d4a72c; }
+.galeria-album-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 15px;
+    color: #1d1d1b;
+}
+.galeria-album-cabecera span {
+    background-color: #FFF3E4;
+    color: #d96f00;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 30px;
+}
+.galeria-album-fotos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+.galeria-album-foto {
+    border: 2px solid #eee;
+    border-radius: 12px;
+    padding: 8px;
+    background-color: #FFFFFF;
+}
+.galeria-album-foto-img {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f1ead8;
+    margin-bottom: 8px;
+}
+.galeria-album-foto-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.galeria-album-foto-img span {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+.galeria-album-foto textarea {
+    width: 100%;
+    min-height: 54px;
+    font-size: 12px;
+    padding: 7px 9px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-family: inherit;
+    resize: vertical;
+}
+.galeria-album-foto .galeria-form-acciones { margin-top: 8px; gap: 6px; flex-wrap: wrap; }
+
+/* Libros: hasta 4 fotos */
+.libro-media {
+    flex: 0 0 150px;
+    width: 150px;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.libro-media .libro-portada { flex: none; width: 100%; max-width: none; }
+.libro-foto-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+}
+.libro-portada-vacia { font-size: 15px; font-weight: 600; color: #5a6b22; }
+.libro-minis { display: flex; gap: 8px; }
+.libro-mini {
+    flex: 1;
+    min-width: 0;
+    aspect-ratio: 2 / 3;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #e6efcf;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.libro-mini:hover { border-color: #5a6b22; transform: translateY(-2px); }
+.libro-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 520px) {
+    .libro-media { flex: none; width: 60%; max-width: 220px; align-self: center; }
+}
+.libros-form-fotos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin: 8px 0 4px;
+}
+.libros-form-foto {
+    position: relative;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    padding: 6px;
+    background-color: #FFFFFF;
+}
+.libros-form-foto img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; display: block; }
+.libros-form-etiqueta {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-color: #4caf2a;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+}
+.libros-form-botones { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.libros-form-botones button {
+    border: 1px solid #ddd;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 6px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.libros-form-botones button[data-quitar-foto] { color: #d6431c; border-color: #f0c5ba; }
+
+body.dark-mode .galeria-album-cabecera { color: #f6efe4; }
+body.dark-mode .galeria-album-foto,
+body.dark-mode .libros-form-foto { background-color: #2c2115; border-color: rgba(255, 255, 255, 0.15); }
+body.dark-mode .galeria-album-foto textarea { background-color: #1b140c; color: #f6efe4; border-color: rgba(255, 255, 255, 0.18); }
+body.dark-mode .libros-form-botones button { background-color: #2c2115; color: #f0e8dc; border-color: rgba(255, 255, 255, 0.18); }
