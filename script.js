@@ -1891,14 +1891,38 @@ if (fraseDiaFormArchivo) {
     fraseDiaFormArchivo.addEventListener('change', () => {
         const archivo = fraseDiaFormArchivo.files[0];
         if (!archivo) return;
-        const lector = new FileReader();
-        lector.onload = () => {
-            fraseDiaBase64Nueva = lector.result;
+        comprimirImagenFrase(archivo).then((dataUrl) => {
+            fraseDiaBase64Nueva = dataUrl;
             fraseDiaFormPreview.src = fraseDiaBase64Nueva;
             fraseDiaFormPreviewWrap.hidden = false;
-        };
-        lector.readAsDataURL(archivo);
+        }).catch((err) => {
+            console.error('No se pudo preparar la imagen:', err);
+            alert('No se pudo leer esa imagen. Prueba con otra (JPG o PNG).');
+        });
     });
+}
+
+// Reduce la imagen ANTES de enviarla (el servidor rechaza imágenes muy pesadas,
+// y eso causaba el error "No se pudo conectar"). Se mantiene la transparencia.
+async function comprimirImagenFrase(archivo){
+    const bmp = await createImageBitmap(archivo);
+    let lado = 1000;
+    let calidad = 0.85;
+    let url = '';
+    for (let i = 0; i < 8; i++) {
+        const esc = Math.min(1, lado / Math.max(bmp.width, bmp.height));
+        const lienzo = document.createElement('canvas');
+        lienzo.width = Math.max(1, Math.round(bmp.width * esc));
+        lienzo.height = Math.max(1, Math.round(bmp.height * esc));
+        lienzo.getContext('2d').drawImage(bmp, 0, 0, lienzo.width, lienzo.height);
+        url = lienzo.toDataURL('image/webp', calidad);
+        if (url.indexOf('data:image/webp') !== 0) url = lienzo.toDataURL('image/png');
+        if (url.length < 500000) break;
+        lado = Math.round(lado * 0.8);
+        calidad = Math.max(0.6, calidad - 0.07);
+    }
+    if (bmp.close) bmp.close();
+    return url;
 }
 
 async function llamarFraseDiaAPI(metodo, body){
@@ -1918,12 +1942,12 @@ async function llamarFraseDiaAPI(metodo, body){
             sessionStorage.removeItem('elalebrije-admin-clave');
             return null;
         }
-        if (!resp.ok) throw new Error('Respuesta no válida');
+        if (!resp.ok) throw new Error('El servidor respondió con código ' + resp.status);
         sessionStorage.setItem('elalebrije-admin-clave', clave);
         return true;
     } catch (err) {
         console.error('Error en frase del día:', err);
-        alert('No se pudo conectar. Revisa tu internet e intenta de nuevo.');
+        alert('No se pudo publicar la imagen (' + (err && err.message ? err.message : 'sin conexión') + '). Intenta de nuevo con una imagen más pequeña.');
         return null;
     }
 }
