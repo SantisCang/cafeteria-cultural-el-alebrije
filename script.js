@@ -45,7 +45,7 @@ const ADMIN_SESSION_KEY = 'elalebrije-admin-activo';
 const API_BASE_URL = 'https://cafeteria-cultural-el-alebrije.vercel.app/api';
 
 let modoAdmin = sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null, menuNuevos: null, menuSabores: null };
+let contenidoServidor = { noticias: null, promociones: null, menu: {}, podcast: null, videos: null, recetas: null, inicio: null, info: null, menuNuevos: null, menuSabores: null, galeria: null, libros: null };
 
 function mostrarBotonesAdmin(mostrar){
     document.querySelectorAll('.solo-admin').forEach((el) => {
@@ -663,7 +663,6 @@ function pintarPodcast(){
     episodios.forEach((ep) => {
         const art = document.createElement('article');
         art.className = 'podcast-card';
-        art.style.setProperty('--accent', ep.color || '#ff9000');
         const reproductor = ep.youtubeId
             ? `<div class="podcast-yt-embed" style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin-top:8px;"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ep.youtubeId}" title="${ep.titulo || 'Episodio'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:0;"></iframe></div>`
             : `<audio controls ${ep.audio ? `src="${ep.audio}"` : ''}></audio>`;
@@ -1854,6 +1853,14 @@ const fraseDiaModalGuardar = document.getElementById('frase-dia-modal-guardar');
 const fraseDiaModalQuitar = document.getElementById('frase-dia-modal-quitar');
 let fraseDiaBase64Nueva = '';
 
+// Cuando hay frase/imagen del día: círculo dorado tenue + logo pequeño flotando
+function aplicarFraseActiva(activa){
+    const header = document.getElementById('inicio');
+    const esquina = document.getElementById('hero-logo-esquina');
+    if (header) header.classList.toggle('frase-activa', !!activa);
+    if (esquina) esquina.hidden = !activa;
+}
+
 async function cargarFraseDelDia(){
     try {
         const resp = await fetch(`${API_BASE_URL}/frase-dia`);
@@ -1861,6 +1868,7 @@ async function cargarFraseDelDia(){
         const datos = await resp.json();
         if (datos.imagen && heroLogoImg) {
             heroLogoImg.src = datos.imagen;
+            aplicarFraseActiva(true);
         }
     } catch (err) {
         console.warn('No se pudo cargar la frase del día:', err);
@@ -1931,6 +1939,7 @@ if (fraseDiaModalGuardar) {
         fraseDiaModalGuardar.disabled = false;
         if (!ok) return;
         if (heroLogoImg) heroLogoImg.src = fraseDiaBase64Nueva;
+        aplicarFraseActiva(true);
         fraseDiaModal.classList.remove('open');
         alert('Publicada: se verá para todos en el espacio del logo durante las próximas 24 horas, y después vuelve a salir el logo solo.');
     });
@@ -1944,15 +1953,631 @@ if (fraseDiaModalQuitar) {
         fraseDiaModalQuitar.disabled = false;
         if (!ok) return;
         if (heroLogoImg) heroLogoImg.src = LOGO_ORIGINAL_SRC;
+        aplicarFraseActiva(false);
         fraseDiaModal.classList.remove('open');
     });
 }
+
+// =====================================================================
+// UTILIDADES COMPARTIDAS (Galería de Honor, Libros del mes, Reseñas)
+// =====================================================================
+
+// Convierte texto a algo seguro para meter dentro de HTML. Es obligatorio
+// con las reseñas, porque las escribe cualquier persona del público.
+function escaparHtml(texto){
+    return String(texto == null ? '' : texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Reduce el peso de una foto antes de subirla (las fotos de celular pesan
+// 5-10 MB y harían lenta la página). Máx. 1800 px de lado, calidad 85%.
+// Si algo falla o no se logra reducir, se sube el archivo original.
+async function optimizarImagen(archivo, maxLado = 1800, calidad = 0.85){
+    if (!/^image\/(jpeg|png|webp)$/.test(archivo.type)) return archivo;
+    try {
+        const bitmap = await createImageBitmap(archivo);
+        const escala = Math.min(1, maxLado / Math.max(bitmap.width, bitmap.height));
+        const ancho = Math.round(bitmap.width * escala);
+        const alto = Math.round(bitmap.height * escala);
+        const lienzo = document.createElement('canvas');
+        lienzo.width = ancho;
+        lienzo.height = alto;
+        const ctx = lienzo.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, ancho, alto);
+        ctx.drawImage(bitmap, 0, 0, ancho, alto);
+        if (bitmap.close) bitmap.close();
+        const blob = await new Promise((ok) => lienzo.toBlob(ok, 'image/jpeg', calidad));
+        if (!blob || blob.size >= archivo.size) return archivo;
+        return new File([blob], 'foto.jpg', { type: 'image/jpeg' });
+    } catch (err) {
+        console.warn('No se pudo optimizar la imagen, se sube la original:', err);
+        return archivo;
+    }
+}
+
+// Optimiza y sube una imagen a Vercel Blob. Regresa el link público.
+async function subirImagenAdmin(archivo, prefijo, onProgreso){
+    const lista = await optimizarImagen(archivo);
+    const ext = lista.type === 'image/jpeg' ? 'jpg' : (lista.type.split('/')[1] || 'jpg');
+    const renombrada = new File([lista], `${prefijo}-${Date.now()}.${ext}`, { type: lista.type });
+    return subirArchivoGrande(renombrada, onProgreso);
+}
+
+// =====================================================================
+// GALERÍA DE HONOR
+// =====================================================================
+// Lista por defecto (vacía). Las fotos las sube el administrador desde el
+// panel oculto y se guardan para todos los visitantes.
+const GALERIA = [];
+
+function obtenerGaleriaActual(){
+    return contenidoServidor.galeria || GALERIA;
+}
+
+function pintarGaleria(){
+    const grid = document.getElementById('galeria-grid');
+    const vacio = document.getElementById('galeria-vacio');
+    if (!grid) return;
+    const fotos = obtenerGaleriaActual();
+    grid.innerHTML = '';
+    if (vacio) vacio.hidden = fotos.length > 0;
+    fotos.forEach((foto, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'galeria-item';
+        btn.setAttribute('data-i', i);
+        btn.setAttribute('aria-label', `Ver en grande: ${foto.titulo || 'foto ' + (i + 1)}`);
+        btn.innerHTML = `
+            <span class="galeria-item-foto"><img src="${escaparHtml(foto.imagen)}" alt="${escaparHtml(foto.titulo || 'Foto de la Galería de Honor')}" loading="lazy"></span>
+            ${(foto.titulo || foto.descripcion) ? `<span class="galeria-item-info">${foto.titulo ? `<strong>${escaparHtml(foto.titulo)}</strong>` : ''}${foto.descripcion ? `<small>${escaparHtml(foto.descripcion)}</small>` : ''}</span>` : ''}
+        `;
+        btn.addEventListener('click', () => abrirLightboxGaleria(i, btn));
+        grid.appendChild(btn);
+    });
+}
+
+// ---- Visor de foto ampliada ----
+const galeriaLightbox = document.getElementById('galeria-lightbox');
+const galeriaLbImg = document.getElementById('galeria-lb-img');
+const galeriaLbTitulo = document.getElementById('galeria-lb-titulo');
+const galeriaLbDesc = document.getElementById('galeria-lb-desc');
+let galeriaLbIndice = 0;
+let galeriaLbOrigen = null;
+
+function mostrarFotoLightbox(i){
+    const fotos = obtenerGaleriaActual();
+    if (!fotos.length) return;
+    galeriaLbIndice = (i + fotos.length) % fotos.length;
+    const foto = fotos[galeriaLbIndice];
+    galeriaLbImg.src = foto.imagen;
+    galeriaLbImg.alt = foto.titulo || 'Foto de la Galería de Honor';
+    galeriaLbTitulo.textContent = foto.titulo || '';
+    galeriaLbDesc.textContent = foto.descripcion || '';
+    galeriaLbTitulo.hidden = !foto.titulo;
+    galeriaLbDesc.hidden = !foto.descripcion;
+    const unica = fotos.length < 2;
+    document.getElementById('galeria-lb-prev').hidden = unica;
+    document.getElementById('galeria-lb-next').hidden = unica;
+}
+
+function abrirLightboxGaleria(i, origen){
+    if (!galeriaLightbox) return;
+    galeriaLbOrigen = origen || null;
+    mostrarFotoLightbox(i);
+    galeriaLightbox.hidden = false;
+    document.body.classList.add('galeria-lb-abierto');
+    document.getElementById('galeria-lb-cerrar').focus();
+}
+
+function cerrarLightboxGaleria(){
+    if (!galeriaLightbox || galeriaLightbox.hidden) return;
+    galeriaLightbox.hidden = true;
+    galeriaLbImg.src = '';
+    document.body.classList.remove('galeria-lb-abierto');
+    if (galeriaLbOrigen) galeriaLbOrigen.focus();
+}
+
+if (galeriaLightbox) {
+    document.getElementById('galeria-lb-cerrar').addEventListener('click', cerrarLightboxGaleria);
+    document.getElementById('galeria-lb-prev').addEventListener('click', () => mostrarFotoLightbox(galeriaLbIndice - 1));
+    document.getElementById('galeria-lb-next').addEventListener('click', () => mostrarFotoLightbox(galeriaLbIndice + 1));
+    galeriaLightbox.addEventListener('click', (e) => { if (e.target === galeriaLightbox) cerrarLightboxGaleria(); });
+    document.addEventListener('keydown', (e) => {
+        if (galeriaLightbox.hidden) return;
+        if (e.key === 'Escape') cerrarLightboxGaleria();
+        else if (e.key === 'ArrowLeft') mostrarFotoLightbox(galeriaLbIndice - 1);
+        else if (e.key === 'ArrowRight') mostrarFotoLightbox(galeriaLbIndice + 1);
+    });
+}
+
+// ---- Panel de administración de la galería ----
+const galeriaAdminBtn = document.getElementById('galeria-admin-btn');
+const galeriaModal = document.getElementById('galeria-modal');
+const galeriaModalClose = document.getElementById('galeria-modal-close');
+const galeriaModalLista = document.getElementById('galeria-modal-lista');
+const galeriaModalArchivos = document.getElementById('galeria-modal-archivos');
+const galeriaModalEstado = document.getElementById('galeria-modal-estado');
+const galeriaModalGuardar = document.getElementById('galeria-modal-guardar');
+let galeriaFormulario = [];
+
+function renderFormularioGaleria(){
+    if (!galeriaModalLista) return;
+    galeriaModalLista.innerHTML = '';
+    if (!galeriaFormulario.length) {
+        galeriaModalLista.innerHTML = '<p class="noticias-vacio" style="padding:10px 0;">Todavía no hay fotos. Usa el botón de arriba para subir las primeras.</p>';
+        return;
+    }
+    galeriaFormulario.forEach((foto, i) => {
+        const fila = document.createElement('div');
+        fila.className = 'noticia-form galeria-form-fila';
+        fila.innerHTML = `
+            <div class="galeria-form-miniatura"><img src="${escaparHtml(foto.imagen)}" alt="Vista previa"></div>
+            <div class="galeria-form-campos">
+                <label>Título</label>
+                <input type="text" placeholder="Título de la foto" maxlength="80" value="${escaparHtml(foto.titulo)}" data-campo="titulo" data-i="${i}">
+                <label style="margin-top:10px">Descripción corta</label>
+                <textarea maxlength="240" placeholder="Una o dos líneas sobre esta foto" data-campo="descripcion" data-i="${i}">${escaparHtml(foto.descripcion)}</textarea>
+                <div class="galeria-form-acciones">
+                    <button type="button" class="galeria-mover" data-mover="-1" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Subir de lugar">↑</button>
+                    <button type="button" class="galeria-mover" data-mover="1" data-i="${i}" ${i === galeriaFormulario.length - 1 ? 'disabled' : ''} aria-label="Bajar de lugar">↓</button>
+                    <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar foto</button>
+                </div>
+            </div>
+        `;
+        galeriaModalLista.appendChild(fila);
+    });
+    galeriaModalLista.querySelectorAll('input[data-campo], textarea[data-campo]').forEach((el) => {
+        el.addEventListener('input', () => {
+            galeriaFormulario[Number(el.getAttribute('data-i'))][el.getAttribute('data-campo')] = el.value;
+        });
+    });
+    galeriaModalLista.querySelectorAll('.galeria-mover').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const i = Number(btn.getAttribute('data-i'));
+            const j = i + Number(btn.getAttribute('data-mover'));
+            if (j < 0 || j >= galeriaFormulario.length) return;
+            [galeriaFormulario[i], galeriaFormulario[j]] = [galeriaFormulario[j], galeriaFormulario[i]];
+            renderFormularioGaleria();
+        });
+    });
+    galeriaModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            galeriaFormulario.splice(Number(btn.getAttribute('data-i')), 1);
+            renderFormularioGaleria();
+        });
+    });
+}
+
+if (galeriaAdminBtn) {
+    galeriaAdminBtn.addEventListener('click', () => {
+        galeriaFormulario = JSON.parse(JSON.stringify(obtenerGaleriaActual()));
+        if (galeriaModalEstado) galeriaModalEstado.textContent = '';
+        renderFormularioGaleria();
+        galeriaModal.classList.add('open');
+    });
+}
+if (galeriaModalClose) galeriaModalClose.addEventListener('click', () => galeriaModal.classList.remove('open'));
+if (galeriaModal) galeriaModal.addEventListener('click', (e) => { if (e.target === galeriaModal) galeriaModal.classList.remove('open'); });
+
+if (galeriaModalArchivos) {
+    galeriaModalArchivos.addEventListener('change', async () => {
+        const archivos = Array.from(galeriaModalArchivos.files || []).filter((a) => a.type.startsWith('image/'));
+        galeriaModalArchivos.value = '';
+        if (!archivos.length) return;
+        galeriaModalArchivos.disabled = true;
+        galeriaModalGuardar.disabled = true;
+        let subidas = 0;
+        let fallidas = 0;
+        // Se suben una por una para no saturar la conexión y para pedir la
+        // contraseña (si hace falta) solo una vez.
+        for (let n = 0; n < archivos.length; n++) {
+            galeriaModalEstado.textContent = `⏳ Subiendo foto ${n + 1} de ${archivos.length}... 0%`;
+            try {
+                const url = await subirImagenAdmin(archivos[n], 'galeria', (pct) => {
+                    galeriaModalEstado.textContent = `⏳ Subiendo foto ${n + 1} de ${archivos.length}... ${Math.round(pct)}%`;
+                });
+                galeriaFormulario.push({ imagen: url, titulo: '', descripcion: '' });
+                subidas++;
+            } catch (err) {
+                console.error('Error subiendo foto:', err);
+                fallidas++;
+                if (err && /contraseña/i.test(err.message || '')) break;
+            }
+        }
+        galeriaModalEstado.textContent = fallidas
+            ? `⚠️ Se subieron ${subidas} foto(s); ${fallidas} no se pudieron subir. Revisa la contraseña o tu conexión e intenta de nuevo.`
+            : `✓ ${subidas} foto(s) subida(s). Ponles título y descripción y da clic en "Guardar cambios".`;
+        galeriaModalArchivos.disabled = false;
+        galeriaModalGuardar.disabled = false;
+        renderFormularioGaleria();
+    });
+}
+
+if (galeriaModalGuardar) {
+    galeriaModalGuardar.addEventListener('click', async () => {
+        galeriaModalGuardar.disabled = true;
+        const datos = galeriaFormulario
+            .filter((f) => f.imagen)
+            .map((f) => ({ imagen: f.imagen, titulo: (f.titulo || '').trim(), descripcion: (f.descripcion || '').trim() }));
+        const ok = await guardarContenidoEnServidor('galeria', datos);
+        galeriaModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.galeria = datos;
+        pintarGaleria();
+        galeriaModal.classList.remove('open');
+        alert('Galería de Honor actualizada: ya se ve así para todos los visitantes.');
+    });
+}
+
+// =====================================================================
+// LIBROS DEL MES
+// =====================================================================
+const LIBROS = [];
+
+function obtenerLibrosActuales(){
+    return contenidoServidor.libros || LIBROS;
+}
+
+function pintarLibros(){
+    const grid = document.getElementById('libros-grid');
+    const vacio = document.getElementById('libros-vacio');
+    if (!grid) return;
+    const libros = obtenerLibrosActuales();
+    grid.innerHTML = '';
+    if (vacio) vacio.hidden = libros.length > 0;
+    libros.forEach((libro) => {
+        const art = document.createElement('article');
+        art.className = 'libro-card';
+        art.innerHTML = `
+            <div class="libro-portada">
+                ${libro.imagen ? `<img src="${escaparHtml(libro.imagen)}" alt="Portada de ${escaparHtml(libro.titulo || 'el libro')}" loading="lazy">` : '<span class="libro-portada-vacia">📖</span>'}
+            </div>
+            <div class="libro-info">
+                <span class="libro-etiqueta">📖 Libro del mes</span>
+                <h3>${escaparHtml(libro.titulo)}</h3>
+                ${libro.autor ? `<p class="libro-autor">${escaparHtml(libro.autor)}</p>` : ''}
+                <p class="libro-desc">${escaparHtml(libro.descripcion)}</p>
+            </div>
+        `;
+        grid.appendChild(art);
+    });
+}
+
+// ---- Panel de administración de libros ----
+const librosAdminBtn = document.getElementById('libros-admin-btn');
+const librosModal = document.getElementById('libros-modal');
+const librosModalClose = document.getElementById('libros-modal-close');
+const librosModalLista = document.getElementById('libros-modal-lista');
+const librosModalAgregar = document.getElementById('libros-modal-agregar');
+const librosModalGuardar = document.getElementById('libros-modal-guardar');
+let librosFormulario = [];
+
+function renderFormularioLibros(){
+    if (!librosModalLista) return;
+    librosModalLista.innerHTML = '';
+    librosFormulario.forEach((libro, i) => {
+        const fila = document.createElement('div');
+        fila.className = 'noticia-form';
+        fila.innerHTML = `
+            <label>Título del libro</label>
+            <input type="text" placeholder="Título" maxlength="120" value="${escaparHtml(libro.titulo)}" data-campo="titulo" data-i="${i}">
+            <label style="margin-top:10px">Autor/a (opcional)</label>
+            <input type="text" placeholder="Nombre del autor o autora" maxlength="120" value="${escaparHtml(libro.autor)}" data-campo="autor" data-i="${i}">
+            <label style="margin-top:10px">Descripción</label>
+            <textarea maxlength="600" placeholder="¿Por qué lo recomiendas? ¿De qué trata?" data-campo="descripcion" data-i="${i}">${escaparHtml(libro.descripcion)}</textarea>
+            <label style="margin-top:10px">Imagen (portada)</label>
+            <input type="file" accept="image/*" data-archivo="imagen" data-i="${i}">
+            <p class="galeria-subida-estado" data-estado-i="${i}">${libro.imagen ? '✓ Portada cargada' : ''}</p>
+            ${libro.imagen ? `<div class="libros-form-preview"><img src="${escaparHtml(libro.imagen)}" alt="Vista previa de la portada"></div>` : ''}
+            <div style="margin-top:10px; text-align:right;">
+                <button type="button" class="noticia-form-eliminar" data-i="${i}">🗑 Eliminar este libro</button>
+            </div>
+        `;
+        librosModalLista.appendChild(fila);
+    });
+    librosModalLista.querySelectorAll('input[data-campo], textarea[data-campo]').forEach((el) => {
+        el.addEventListener('input', () => {
+            librosFormulario[Number(el.getAttribute('data-i'))][el.getAttribute('data-campo')] = el.value;
+        });
+    });
+    librosModalLista.querySelectorAll('input[type="file"][data-archivo]').forEach((input) => {
+        input.addEventListener('change', async () => {
+            const archivo = input.files[0];
+            if (!archivo) return;
+            const i = Number(input.getAttribute('data-i'));
+            const estadoEl = librosModalLista.querySelector(`[data-estado-i="${i}"]`);
+            input.disabled = true;
+            librosModalGuardar.disabled = true;
+            if (estadoEl) estadoEl.textContent = '⏳ Subiendo portada... 0%';
+            try {
+                const url = await subirImagenAdmin(archivo, 'libro', (pct) => {
+                    if (estadoEl) estadoEl.textContent = `⏳ Subiendo portada... ${Math.round(pct)}%`;
+                });
+                librosFormulario[i].imagen = url;
+                renderFormularioLibros();
+            } catch (err) {
+                console.error('Error subiendo portada:', err);
+                if (estadoEl) estadoEl.textContent = '❌ No se pudo subir: ' + (err && err.message ? err.message : 'intenta de nuevo.');
+                input.disabled = false;
+            } finally {
+                librosModalGuardar.disabled = false;
+            }
+        });
+    });
+    librosModalLista.querySelectorAll('.noticia-form-eliminar').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            librosFormulario.splice(Number(btn.getAttribute('data-i')), 1);
+            renderFormularioLibros();
+        });
+    });
+}
+
+if (librosAdminBtn) {
+    librosAdminBtn.addEventListener('click', () => {
+        librosFormulario = JSON.parse(JSON.stringify(obtenerLibrosActuales()));
+        renderFormularioLibros();
+        librosModal.classList.add('open');
+    });
+}
+if (librosModalClose) librosModalClose.addEventListener('click', () => librosModal.classList.remove('open'));
+if (librosModal) librosModal.addEventListener('click', (e) => { if (e.target === librosModal) librosModal.classList.remove('open'); });
+if (librosModalAgregar) {
+    librosModalAgregar.addEventListener('click', () => {
+        librosFormulario.push({ imagen: '', titulo: '', autor: '', descripcion: '' });
+        renderFormularioLibros();
+    });
+}
+if (librosModalGuardar) {
+    librosModalGuardar.addEventListener('click', async () => {
+        librosModalGuardar.disabled = true;
+        const datos = librosFormulario
+            .filter((l) => (l.titulo || '').trim() || l.imagen)
+            .map((l) => ({ imagen: l.imagen || '', titulo: (l.titulo || '').trim(), autor: (l.autor || '').trim(), descripcion: (l.descripcion || '').trim() }));
+        const ok = await guardarContenidoEnServidor('libros', datos);
+        librosModalGuardar.disabled = false;
+        if (!ok) return;
+        contenidoServidor.libros = datos;
+        pintarLibros();
+        librosModal.classList.remove('open');
+        alert('Libros del mes actualizados: ya se ven así para todos los visitantes.');
+    });
+}
+
+// =====================================================================
+// RESEÑAS (cualquier persona puede opinar, de 1 a 5 estrellas)
+// =====================================================================
+const RESENAS_POR_PAGINA = 6;
+const NOMBRE_CATEGORIA_RESENA = {
+    platillos: 'Platillos y bebidas',
+    atencion: 'Atención',
+    ambiente: 'Ambiente',
+    general: 'Experiencia general'
+};
+let resenasTodas = [];
+let resenasFiltro = 'todas';
+let resenasVisibles = RESENAS_POR_PAGINA;
+let resenasErrorCarga = false;
+
+function estrellasHtml(n){
+    let html = '';
+    for (let i = 1; i <= 5; i++) html += `<span class="${i <= n ? 'on' : ''}">★</span>`;
+    return `<span class="estrellas" role="img" aria-label="${n} de 5 estrellas">${html}</span>`;
+}
+
+function pintarResumenResenas(){
+    const cont = document.getElementById('resenas-resumen');
+    if (!cont) return;
+    const total = resenasTodas.length;
+    if (!total) {
+        cont.innerHTML = `
+            <div class="resumen-promedio">
+                <span class="resumen-numero">—</span>
+                ${estrellasHtml(0)}
+                <span class="resumen-total">Aún sin calificaciones</span>
+            </div>`;
+        return;
+    }
+    const conteo = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let suma = 0;
+    resenasTodas.forEach((r) => { conteo[r.estrellas]++; suma += r.estrellas; });
+    const promedio = suma / total;
+    let barras = '';
+    for (let e = 5; e >= 1; e--) {
+        const pct = Math.round((conteo[e] / total) * 100);
+        barras += `
+            <div class="resumen-barra">
+                <span>${e} ★</span>
+                <div class="resumen-barra-fondo"><div class="resumen-barra-relleno" style="width:${pct}%"></div></div>
+                <span class="resumen-barra-num">${conteo[e]}</span>
+            </div>`;
+    }
+    cont.innerHTML = `
+        <div class="resumen-promedio">
+            <span class="resumen-numero">${promedio.toFixed(1)}</span>
+            ${estrellasHtml(Math.round(promedio))}
+            <span class="resumen-total">${total} ${total === 1 ? 'reseña' : 'reseñas'}</span>
+        </div>
+        <div class="resumen-barras">${barras}</div>`;
+}
+
+function pintarListaResenas(){
+    const lista = document.getElementById('resenas-lista');
+    const vacio = document.getElementById('resenas-vacio');
+    const masBtn = document.getElementById('resenas-mas');
+    if (!lista) return;
+    const filtradas = resenasTodas;
+    const visibles = filtradas.slice(0, resenasVisibles);
+    lista.innerHTML = '';
+    if (vacio) {
+        vacio.hidden = filtradas.length > 0;
+        vacio.textContent = resenasErrorCarga
+            ? 'Por ahora no podemos mostrar las reseñas. Intenta de nuevo en unos minutos.'
+            : 'Aún no hay reseñas. ¡Sé la primera persona en opinar!';
+    }
+    visibles.forEach((r) => {
+        const fecha = r.fecha
+            ? new Date(r.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+            : '';
+        const art = document.createElement('article');
+        art.className = 'resena-card';
+        art.innerHTML = `
+            <div class="resena-card-top">
+                <span class="resena-avatar" aria-hidden="true">${escaparHtml((r.nombre || '?').trim().charAt(0).toUpperCase())}</span>
+                <div class="resena-quien">
+                    <strong>${escaparHtml(r.nombre)}</strong>
+                    <small>${escaparHtml(fecha)}</small>
+                </div>
+                ${estrellasHtml(r.estrellas)}
+            </div>
+            <p>${escaparHtml(r.comentario)}</p>
+            <button type="button" class="resena-borrar solo-admin" data-id="${escaparHtml(r.id)}" ${modoAdmin ? '' : 'hidden'}>🗑 Borrar reseña</button>
+        `;
+        lista.appendChild(art);
+    });
+    if (masBtn) masBtn.hidden = filtradas.length <= resenasVisibles;
+}
+
+function pintarResenas(){
+    pintarResumenResenas();
+    pintarListaResenas();
+}
+
+async function cargarResenas(){
+    try {
+        const resp = await fetch(`${API_BASE_URL}/resenas`);
+        if (!resp.ok) throw new Error('código ' + resp.status);
+        const datos = await resp.json();
+        resenasTodas = Array.isArray(datos.resenas) ? datos.resenas : [];
+        resenasErrorCarga = false;
+    } catch (err) {
+        console.warn('No se pudieron cargar las reseñas:', err);
+        resenasErrorCarga = true;
+    }
+    pintarResenas();
+}
+
+// ---- "Ver más" ----
+const resenasMasBtn = document.getElementById('resenas-mas');
+if (resenasMasBtn) {
+    resenasMasBtn.addEventListener('click', () => {
+        resenasVisibles += RESENAS_POR_PAGINA;
+        pintarListaResenas();
+    });
+}
+
+// ---- Moderación: el administrador puede borrar una reseña ----
+const resenasListaEl = document.getElementById('resenas-lista');
+if (resenasListaEl) {
+    resenasListaEl.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.resena-borrar');
+        if (!btn || !modoAdmin) return;
+        if (!confirm('¿Borrar esta reseña para todos los visitantes?')) return;
+        let clave = obtenerClaveAdmin();
+        if (!clave) {
+            clave = window.prompt('Contraseña del panel para borrar la reseña:') || '';
+            if (!clave) return;
+        }
+        btn.disabled = true;
+        try {
+            const resp = await fetch(`${API_BASE_URL}/resenas`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: btn.getAttribute('data-id'), password: clave })
+            });
+            if (resp.status === 401) {
+                alert('Contraseña incorrecta. La reseña no se borró.');
+                sessionStorage.removeItem('elalebrije-admin-clave');
+                btn.disabled = false;
+                return;
+            }
+            if (!resp.ok) throw new Error('código ' + resp.status);
+            sessionStorage.setItem('elalebrije-admin-clave', clave);
+            resenasTodas = resenasTodas.filter((r) => r.id !== btn.getAttribute('data-id'));
+            pintarResenas();
+        } catch (err) {
+            console.error('Error borrando reseña:', err);
+            alert('No se pudo borrar la reseña. Intenta de nuevo.');
+            btn.disabled = false;
+        }
+    });
+}
+
+// ---- Formulario para dejar una reseña ----
+const resenaForm = document.getElementById('resena-form');
+if (resenaForm) {
+    const campoNombre = document.getElementById('resena-nombre');
+    const campoComentario = document.getElementById('resena-comentario');
+    const campoSitio = document.getElementById('resena-sitio');
+    const contador = document.getElementById('resena-contador');
+    const mensaje = document.getElementById('resena-msg');
+    const botonEnviar = document.getElementById('resena-enviar');
+
+    const mostrarMensaje = (texto, tipo) => {
+        mensaje.textContent = texto;
+        mensaje.className = 'resena-msg' + (tipo ? ' ' + tipo : '');
+    };
+
+    campoComentario.addEventListener('input', () => {
+        contador.textContent = campoComentario.value.length;
+    });
+
+    resenaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const marcada = resenaForm.querySelector('input[name="resena-estrellas"]:checked');
+        const nombre = campoNombre.value.trim();
+        const comentario = campoComentario.value.trim();
+
+        if (!nombre) { mostrarMensaje('Escribe tu nombre.', 'error'); campoNombre.focus(); return; }
+        if (!marcada) { mostrarMensaje('Elige tu calificación de 1 a 5 estrellas.', 'error'); return; }
+        if (comentario.length < 3) { mostrarMensaje('Cuéntanos un poco más en tu comentario.', 'error'); campoComentario.focus(); return; }
+
+        botonEnviar.disabled = true;
+        mostrarMensaje('Enviando tu reseña...', '');
+        try {
+            const resp = await fetch(`${API_BASE_URL}/resenas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre,
+                    estrellas: Number(marcada.value),
+                    categoria: 'general',
+                    comentario,
+                    sitioWeb: campoSitio.value
+                })
+            });
+            const datos = await resp.json().catch(() => ({}));
+            if (!resp.ok) throw new Error(datos.error || 'No se pudo enviar tu reseña. Intenta de nuevo.');
+
+            if (datos.resena) {
+                resenasTodas.unshift(datos.resena);
+                resenasErrorCarga = false;
+                pintarResenas();
+            }
+            resenaForm.reset();
+            contador.textContent = '0';
+            mostrarMensaje('¡Gracias por tu reseña! Ya aparece publicada.', 'ok');
+        } catch (err) {
+            mostrarMensaje(err.message || 'No se pudo enviar tu reseña. Intenta de nuevo.', 'error');
+        } finally {
+            botonEnviar.disabled = false;
+        }
+    });
+}
+
+cargarResenas();
 
 cargaContenidoServidor.then(() => {
     pintarNoticias();
     pintarPromociones2();
     pintarPodcast();
     pintarVideos();
+    pintarGaleria();
+    pintarLibros();
     pintarRecetas();
     aplicarOverridesInicio();
     aplicarOverridesInfo();
@@ -2265,7 +2890,7 @@ document.querySelectorAll('.navbar a').forEach((link) => {
     link.addEventListener('click', () => {
         link.classList.add('nav-link-tocado');
         setTimeout(() => link.classList.remove('nav-link-tocado'), 500);
-        if (menuToggleCheckbox && menuToggleCheckbox.checked) {
+        if (menuToggleCheckbox && menuToggleCheckbox.checked && !link.classList.contains('nav-drop-toggle')) {
             setTimeout(() => { menuToggleCheckbox.checked = false; }, 180);
         }
     });

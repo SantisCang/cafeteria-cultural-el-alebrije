@@ -5,11 +5,12 @@
 //         cambio se guarda en Vercel KV y se ve de inmediato para TODOS los
 //         visitantes del sitio, sin tocar código ni volver a publicar nada.
 //
-// Tipos de contenido soportados: 'noticias', 'promociones', 'menu'
+// Tipos de contenido soportados: noticias, promociones, menu, podcast, videos,
+// recetas, inicio, info, menu-nuevos, menu-sabores, galeria, libros
 
 import { kv } from '@vercel/kv';
 
-const TIPOS_VALIDOS = ['noticias', 'promociones', 'menu', 'podcast', 'videos', 'recetas', 'inicio', 'info', 'menu-nuevos', 'menu-sabores'];
+const TIPOS_VALIDOS = ['noticias', 'promociones', 'menu', 'podcast', 'videos', 'recetas', 'inicio', 'info', 'menu-nuevos', 'menu-sabores', 'galeria', 'libros'];
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,7 +24,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
         try {
-            const [noticias, promociones, menu, podcast, videos, recetas, inicio, info, menuNuevos, menuSabores] = await Promise.all([
+            const [noticias, promociones, menu, podcast, videos, recetas, inicio, info, menuNuevos, menuSabores, galeria, libros] = await Promise.all([
                 kv.get('contenido:noticias'),
                 kv.get('contenido:promociones'),
                 kv.get('contenido:menu'),
@@ -33,7 +34,9 @@ export default async function handler(req, res) {
                 kv.get('contenido:inicio'),
                 kv.get('contenido:info'),
                 kv.get('contenido:menu-nuevos'),
-                kv.get('contenido:menu-sabores')
+                kv.get('contenido:menu-sabores'),
+                kv.get('contenido:galeria'),
+                kv.get('contenido:libros')
             ]);
             res.status(200).json({
                 noticias: noticias || null,
@@ -45,7 +48,9 @@ export default async function handler(req, res) {
                 inicio: inicio || null,
                 info: info || null,
                 menuNuevos: menuNuevos || null,
-                menuSabores: menuSabores || null
+                menuSabores: menuSabores || null,
+                galeria: galeria || null,
+                libros: libros || null
             });
         } catch (err) {
             console.error('Error leyendo contenido:', err);

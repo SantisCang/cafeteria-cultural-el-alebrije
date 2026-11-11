@@ -54,13 +54,31 @@
                 <nav class="navbar">
                     <ul>
                         <li><a href="#inicio">Inicio</a></li>
-                        <li><a href="#noticias">Noticias</a></li>
-                        <li><a href="#promo-desayuno" class="nav-promo">Promociones</a></li>
-                        <li><a href="#nosotros">Nosotros</a></li>
                         <li><a href="#productos">Menú</a></li>
-                        <li><a href="#podcast">Podcast</a></li>
-                        <li><a href="#videos">Videos</a></li>
-                        <li><a href="#ubicacion">Ubicación</a></li>
+                        <li><a href="#promo-desayuno" class="nav-promo">Promociones</a></li>
+                        <li><a href="#noticias">Noticias</a></li>
+                        <li class="nav-drop">
+                            <a href="#libros" class="nav-drop-toggle" aria-haspopup="true">Recomendaciones <span class="nav-flecha" aria-hidden="true">▾</span></a>
+                            <ul class="nav-submenu">
+                                <li><a href="#libros">Libros del mes</a></li>
+                                <li><a href="#inicio">Frase del día</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-drop">
+                            <a href="#nosotros" class="nav-drop-toggle" aria-haspopup="true">Nosotros <span class="nav-flecha" aria-hidden="true">▾</span></a>
+                            <ul class="nav-submenu">
+                                <li><a href="#galeria">Galería de Honor</a></li>
+                                <li><a href="#ubicacion">Ubicación</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-drop">
+                            <a href="#podcast" class="nav-drop-toggle" aria-haspopup="true">Contenido <span class="nav-flecha" aria-hidden="true">▾</span></a>
+                            <ul class="nav-submenu">
+                                <li><a href="#podcast">Podcast</a></li>
+                                <li><a href="#videos">Videos</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#resenas">Reseñas</a></li>
                     </ul>
                 </nav>
                 <div>
@@ -120,7 +138,10 @@
                 </div>
             </div>
             <div class="header-img">
-                <img src="imagenes/comida1.png" alt="Café Cultural El Alebrije" id="hero-logo-img">
+                <div class="hero-img-wrap">
+                    <img src="imagenes/comida1.png" alt="Café Cultural El Alebrije" id="hero-logo-img">
+                    <img src="imagenes/logo.png" alt="Café Cultural El Alebrije" class="hero-logo-esquina" id="hero-logo-esquina" hidden>
+                </div>
             </div>
         </div>
 
@@ -137,12 +158,6 @@
             <button type="button" class="noticias-admin-btn solo-admin" id="noticias-admin-btn" hidden>✏️ Administrar noticias</button>
         </div>
 
-        <!--
-            Las tarjetas de esta sección se generan automáticamente desde script.js,
-            a partir de la lista NOTICIAS que está al principio del archivo.
-            También se pueden agregar, editar o borrar desde el botón "Administrar noticias"
-            de aquí arriba (ver la nota completa dentro de script.js).
-        -->
         <div class="noticias-grid" id="noticias-grid"></div>
         <p class="noticias-vacio" id="noticias-vacio" hidden>Por ahora no hay noticias publicadas. ¡Vuelve pronto!</p>
     </section>
@@ -224,12 +239,6 @@
             <button type="button" class="promo2-admin-btn solo-admin" id="promo2-admin-btn" hidden>✏️ Administrar promociones</button>
         </div>
 
-        <!--
-            Las tarjetas de esta sección se generan automáticamente desde script.js,
-            a partir de la lista PROMOCIONES2 que está al principio del archivo.
-            También se pueden agregar, editar o borrar desde el botón "Administrar
-            promociones" de aquí arriba (ver la nota completa dentro de script.js).
-        -->
         <div class="promo2-grid" id="promo2-grid"></div>
         <p class="promo2-vacio" id="promo2-vacio" hidden>Por ahora no hay promociones publicadas. ¡Vuelve pronto!</p>
     </section>
@@ -249,6 +258,39 @@
 
             <div class="promo2-modal-acciones">
                 <button type="button" class="pedido-modal-enviar promo2-modal-guardar" id="promo2-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="libros-band">
+    <section class="libros container" id="libros">
+        <div class="section-heading">
+            <span class="eyebrow">Recomendación</span>
+            <h2>Libros del mes</h2>
+            <p>Lecturas que nos gustaría compartir contigo.</p>
+            <button type="button" class="noticias-admin-btn solo-admin" id="libros-admin-btn" hidden>✏️ Administrar libros</button>
+        </div>
+
+        <div class="libros-grid" id="libros-grid"></div>
+        <p class="noticias-vacio" id="libros-vacio" hidden>Muy pronto te recomendaremos nuestro libro del mes.</p>
+    </section>
+    </div>
+
+    <div class="noticias-modal" id="libros-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="libros-modal-close" aria-label="Cerrar">✕</button>
+            <h3>📚 Administrar Libros del mes</h3>
+            <p class="noticias-modal-sub">
+                Agrega, edita o elimina los libros recomendados. Sube la portada y escribe el título
+                y una descripción. Al guardar se actualiza para todos los visitantes.
+            </p>
+
+            <div class="noticias-modal-lista" id="libros-modal-lista"></div>
+
+            <button type="button" class="noticias-modal-agregar" id="libros-modal-agregar">+ Agregar libro</button>
+
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="libros-modal-guardar">Guardar cambios (para todos)</button>
             </div>
         </div>
     </div>
@@ -1072,13 +1114,15 @@
 
 
 
+    <div class="podcast-band">
     <section class="podcast container" id="podcast">
         <div class="section-heading">
             <span class="eyebrow">Nuestro podcast</span>
-            <h2>El Nido del Colibrí</h2>
+            
+
+            <h2>PODCAST ALEBRIJE</h2>
             <p>
-                Charlas sobre café, arte popular y los vecinos que le dan vida al barrio. Nuevo episodio cada
-                quincena — dale play mientras te tomas tu café.
+                Charlas sobre café, historias y anecdotas personales y noticias importantes. Dale PLAY para reproducirlo
             </p>
             <button type="button" class="noticias-admin-btn solo-admin" id="podcast-admin-btn" hidden>✏️ Administrar podcast</button>
         </div>
@@ -1086,6 +1130,7 @@
         <div class="podcast-grid" id="podcast-grid"></div>
         <p class="noticias-vacio" id="podcast-vacio" hidden>Por ahora no hay episodios publicados.</p>
     </section>
+    </div>
 
     <div class="noticias-modal" id="podcast-modal">
         <div class="noticias-modal-inner">
@@ -1292,6 +1337,107 @@
     </div>
 
 
+    <div class="galeria-band">
+    <section class="galeria container" id="galeria">
+        <div class="section-heading">
+            <span class="eyebrow">Recomendación</span>
+            <h2>Galería de Honor</h2>
+            <p>Celebridades, recuerdos y momentos que han dejado huella en nuestro recinto.</p>
+            <button type="button" class="noticias-admin-btn solo-admin" id="galeria-admin-btn" hidden>✏️ Administrar galería</button>
+        </div>
+
+        <div class="galeria-grid" id="galeria-grid"></div>
+        <p class="noticias-vacio" id="galeria-vacio" hidden>Pronto compartiremos aquí las fotos de nuestra Galería de Honor.</p>
+    </section>
+    </div>
+
+    <div class="noticias-modal" id="galeria-modal">
+        <div class="noticias-modal-inner">
+            <button class="noticias-modal-close" id="galeria-modal-close" aria-label="Cerrar">✕</button>
+            <h3>🖼️ Administrar Galería de Honor</h3>
+            <p class="noticias-modal-sub">
+                Sube todas las fotos que quieras (puedes elegir varias a la vez) y ponle a cada una un
+                título y una descripción corta. Al darle a "Guardar cambios" se actualiza para todos
+                los visitantes del sitio.
+            </p>
+
+            <label class="galeria-subir" for="galeria-modal-archivos">
+                <span>📷 Elegir fotos para subir</span>
+                <small>Puedes seleccionar varias imágenes a la vez</small>
+            </label>
+            <input type="file" id="galeria-modal-archivos" accept="image/*" multiple hidden>
+            <p class="galeria-subida-estado" id="galeria-modal-estado" aria-live="polite"></p>
+
+            <div class="noticias-modal-lista" id="galeria-modal-lista"></div>
+
+            <div class="noticias-modal-acciones">
+                <button type="button" class="pedido-modal-enviar" id="galeria-modal-guardar">Guardar cambios (para todos)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="galeria-lightbox" id="galeria-lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada" hidden>
+        <button type="button" class="galeria-lb-cerrar" id="galeria-lb-cerrar" aria-label="Cerrar">✕</button>
+        <button type="button" class="galeria-lb-nav galeria-lb-prev" id="galeria-lb-prev" aria-label="Foto anterior">‹</button>
+        <figure class="galeria-lb-figura">
+            <img id="galeria-lb-img" src="" alt="">
+            <figcaption>
+                <h3 id="galeria-lb-titulo"></h3>
+                <p id="galeria-lb-desc"></p>
+            </figcaption>
+        </figure>
+        <button type="button" class="galeria-lb-nav galeria-lb-next" id="galeria-lb-next" aria-label="Foto siguiente">›</button>
+    </div>
+
+
+    <div class="resenas-band">
+    <section class="resenas container" id="resenas">
+        <div class="section-heading">
+            <span class="eyebrow">Tu opinión cuenta</span>
+            <h2>Reseñas</h2>
+            <p>Cuéntanos tu experiencia en Cafeteria Cultural El Alebrije. Califica y deja tu comentario.</p>
+        </div>
+
+        <div class="resenas-layout">
+            <div class="resenas-izq">
+                <div class="resenas-resumen" id="resenas-resumen" aria-live="polite"></div>
+                <div class="resenas-lista" id="resenas-lista"></div>
+                <p class="noticias-vacio" id="resenas-vacio" hidden>Aún no hay reseñas. ¡Sé la primera persona en opinar!</p>
+                <div class="resenas-mas-wrap"><button type="button" class="noticias-admin-btn" id="resenas-mas" hidden>Ver más reseñas</button></div>
+            </div>
+
+            <form class="resena-form" id="resena-form" novalidate>
+                <h3>Deja tu reseña</h3>
+
+                <label for="resena-nombre">Tu nombre</label>
+                <input type="text" id="resena-nombre" maxlength="40" autocomplete="given-name" placeholder="¿Cómo te llamas?">
+
+                <span class="resena-label" id="resena-estrellas-label">Tu calificación</span>
+                <div class="estrellas-input" role="radiogroup" aria-labelledby="resena-estrellas-label">
+                    <input type="radio" name="resena-estrellas" id="resena-est5" value="5"><label for="resena-est5" title="5 estrellas"><span class="sr-only">5 estrellas</span>★</label>
+                    <input type="radio" name="resena-estrellas" id="resena-est4" value="4"><label for="resena-est4" title="4 estrellas"><span class="sr-only">4 estrellas</span>★</label>
+                    <input type="radio" name="resena-estrellas" id="resena-est3" value="3"><label for="resena-est3" title="3 estrellas"><span class="sr-only">3 estrellas</span>★</label>
+                    <input type="radio" name="resena-estrellas" id="resena-est2" value="2"><label for="resena-est2" title="2 estrellas"><span class="sr-only">2 estrellas</span>★</label>
+                    <input type="radio" name="resena-estrellas" id="resena-est1" value="1"><label for="resena-est1" title="1 estrella"><span class="sr-only">1 estrella</span>★</label>
+                </div>
+
+                <label for="resena-comentario">Tu comentario</label>
+                <textarea id="resena-comentario" maxlength="500" rows="4" placeholder="Cuéntanos tu experiencia..."></textarea>
+                <small class="resena-contador"><span id="resena-contador">0</span>/500</small>
+
+                <div class="resena-trampa" aria-hidden="true">
+                    <label for="resena-sitio">No llenes este campo</label>
+                    <input type="text" id="resena-sitio" tabindex="-1" autocomplete="off">
+                </div>
+
+                <p class="resena-msg" id="resena-msg" role="status" aria-live="polite"></p>
+                <button type="submit" class="btn-1 resena-enviar" id="resena-enviar">Enviar reseña</button>
+            </form>
+        </div>
+    </section>
+    </div>
+
+
     <section class="maps container" id="ubicacion">
         <div class="maps-txt">
             <span class="eyebrow">Ubicación</span>
@@ -1337,6 +1483,9 @@
                     <li><a href="#productos">Menú</a></li>
                     <li><a href="#podcast">Podcast</a></li>
                     <li><a href="#videos">Videos</a></li>
+                    <li><a href="#galeria">Galería de Honor</a></li>
+                    <li><a href="#libros">Libros del mes</a></li>
+                    <li><a href="#resenas">Reseñas</a></li>
                 </ul>
             </div>
 
@@ -1344,7 +1493,7 @@
                 <h3>Contacto</h3>
                 <ul>
                     <li><a href="tel:+525518221646">(55) 1822 1646</a></li>
-                    <li><a href="mailto:hola@elalebrije.cafe">hola@elalebrije.cafe</a></li>
+                    <li><a href="mailto:hola@elalebrije.cafe">cafeculturalelalebrije@gmail.com</a></li>
                     <li><a href="#ubicacion">Ver ubicación</a></li>
                 </ul>
             </div>
