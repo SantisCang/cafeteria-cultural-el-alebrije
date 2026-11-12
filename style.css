@@ -4326,3 +4326,42 @@ body.dark-mode .libro-audio span { color: #9fe05a; }
         color: #FFFFFF !important;
     }
 }
+
+
+/* =====================================================
+   MENÚ MÓVIL: Recomendaciones / Nosotros / Contenido como acordeón
+   ===================================================== */
+@media (max-width: 991px) {
+    /* Las opciones están ocultas hasta tocar la categoría */
+    .menu .navbar ul li .nav-submenu {
+        display: none;
+    }
+    .menu .navbar ul li.nav-drop.abierto > .nav-submenu {
+        display: block;
+    }
+    /* La categoría NO se resalta ni se puede seleccionar: solo abre/cierra */
+    .menu .navbar ul li a.nav-drop-toggle,
+    .menu .navbar ul li a.nav-drop-toggle:hover,
+    .menu .navbar ul li a.nav-drop-toggle:active,
+    .menu .navbar ul li a.nav-drop-toggle:focus,
+    .menu .navbar ul li a.nav-drop-toggle:focus-visible {
+        color: #1d1d1b !important;
+        background-color: transparent !important;
+        outline: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+    }
+    /* Flecha que indica que se despliega */
+    .nav-flecha {
+        display: inline-block;
+        font-size: 14px;
+        margin-left: 8px;
+        transition: transform 0.2s ease;
+    }
+    .menu .navbar ul li.nav-drop.abierto .nav-flecha {
+        transform: rotate(180deg);
+    }
+}

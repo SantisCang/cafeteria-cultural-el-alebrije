@@ -3239,7 +3239,24 @@ if (infoModalGuardar) {
 // =====================================================================
 const menuToggleCheckbox = document.getElementById('menu-toggle');
 document.querySelectorAll('.navbar a').forEach((link) => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', (ev) => {
+        // En celular, "Recomendaciones", "Nosotros" y "Contenido" no son enlaces:
+        // solo abren o cierran su lista de opciones (acordeón).
+        if (link.classList.contains('nav-drop-toggle') && window.matchMedia('(max-width: 991px)').matches) {
+            ev.preventDefault();
+            const item = link.parentElement;
+            const abrir = !item.classList.contains('abierto');
+            document.querySelectorAll('.navbar li.nav-drop.abierto').forEach((li) => {
+                li.classList.remove('abierto');
+                const a = li.querySelector('.nav-drop-toggle');
+                if (a) a.setAttribute('aria-expanded', 'false');
+            });
+            if (abrir) {
+                item.classList.add('abierto');
+                link.setAttribute('aria-expanded', 'true');
+            }
+            return;
+        }
         link.classList.add('nav-link-tocado');
         setTimeout(() => link.classList.remove('nav-link-tocado'), 500);
         if (menuToggleCheckbox && menuToggleCheckbox.checked && !link.classList.contains('nav-drop-toggle')) {
