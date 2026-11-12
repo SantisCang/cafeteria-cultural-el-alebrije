@@ -4217,3 +4217,64 @@ body.dark-mode .galeria-album-foto,
 body.dark-mode .libros-form-foto { background-color: #2c2115; border-color: rgba(255, 255, 255, 0.15); }
 body.dark-mode .galeria-album-foto textarea { background-color: #1b140c; color: #f6efe4; border-color: rgba(255, 255, 255, 0.18); }
 body.dark-mode .libros-form-botones button { background-color: #2c2115; color: #f0e8dc; border-color: rgba(255, 255, 255, 0.18); }
+
+/* =====================================================
+   LIBROS: PDF y audio
+   ===================================================== */
+.libro-recursos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+.libro-pdf {
+    align-self: flex-start;
+    background-color: #4b5a1c;
+    color: #e9ffb8;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 30px;
+    text-decoration: none;
+    box-shadow: 0 5px 14px rgba(40, 60, 10, 0.35);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.libro-pdf:hover { background-color: #3a4616; transform: translateY(-2px); }
+.libro-audio span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #4b7a14;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.libro-audio audio { width: 100%; max-width: 360px; height: 40px; }
+@media (max-width: 520px) {
+    .libro-pdf { align-self: center; }
+    .libro-audio audio { max-width: 100%; }
+}
+body.dark-mode .libro-pdf { background-color: #6fcf3a; color: #10260a; }
+body.dark-mode .libro-audio span { color: #9fe05a; }
+
+.libros-form-archivo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0 2px;
+    font-size: 13px;
+}
+.libros-form-archivo audio { max-width: 100%; height: 36px; }
+.libros-form-archivo button {
+    border: 1px solid #f0c5ba;
+    color: #d6431c;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.libros-form-ok { color: #1d9e5b; font-weight: 700; }

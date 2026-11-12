@@ -2465,6 +2465,10 @@ function pintarLibros(){
                 <h3>${escaparHtml(libro.titulo)}</h3>
                 ${libro.autor ? `<p class="libro-autor">${escaparHtml(libro.autor)}</p>` : ''}
                 <p class="libro-desc">${escaparHtml(libro.descripcion)}</p>
+                ${(libro.pdf || libro.audio) ? `<div class="libro-recursos">
+                    ${libro.pdf ? `<a class="libro-pdf" href="${escaparHtml(libro.pdf)}" target="_blank" rel="noopener">Leer el libro en PDF</a>` : ''}
+                    ${libro.audio ? `<div class="libro-audio"><span>Escuchar el audio</span><audio controls preload="none" src="${escaparHtml(libro.audio)}"></audio></div>` : ''}
+                </div>` : ''}
             </div>
         `;
         art.querySelectorAll('[data-k]').forEach((b) => {
@@ -2513,6 +2517,17 @@ function renderFormularioLibros(){
             <label class="galeria-subir galeria-subir-mini" for="libro-archivos-${i}" ${n >= MAX_FOTOS_LIBRO ? 'hidden' : ''}>Agregar fotos<small>Caben ${MAX_FOTOS_LIBRO - n} más (puedes elegir varias a la vez)</small></label>
             <input type="file" id="libro-archivos-${i}" accept="image/*" multiple hidden data-libro-subir data-i="${i}">
             <p class="galeria-subida-estado" data-estado-i="${i}"></p>
+            <label style="margin-top:14px">Libro en PDF (opcional)</label>
+            <div class="libros-form-archivo">
+                ${libro.pdf ? `<span class="libros-form-ok">PDF cargado</span> <a href="${e(libro.pdf)}" target="_blank" rel="noopener">Ver</a> <button type="button" data-quitar-recurso="pdf" data-i="${i}">Quitar</button>` : ''}
+                <input type="file" accept="application/pdf,.pdf" data-recurso="pdf" data-i="${i}">
+            </div>
+            <label style="margin-top:12px">Audio del libro: MP3 o WAV (opcional)</label>
+            <div class="libros-form-archivo">
+                ${libro.audio ? `<span class="libros-form-ok">Audio cargado</span> <audio controls preload="none" src="${e(libro.audio)}"></audio> <button type="button" data-quitar-recurso="audio" data-i="${i}">Quitar</button>` : ''}
+                <input type="file" accept="audio/mpeg,audio/wav,audio/x-wav,audio/wave,.mp3,.wav" data-recurso="audio" data-i="${i}">
+            </div>
+            <p class="galeria-subida-estado" data-recurso-estado="${i}"></p>
             <div style="margin-top:10px; text-align:right;">
                 <button type="button" class="noticia-form-eliminar" data-eliminar data-i="${i}">Eliminar este libro</button>
             </div>
@@ -2543,6 +2558,19 @@ function renderFormularioLibros(){
         btn.addEventListener('click', () => {
             librosFormulario.splice(Number(btn.getAttribute('data-i')), 1);
             renderFormularioLibros();
+        });
+    });
+    L.querySelectorAll('[data-quitar-recurso]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            librosFormulario[Number(btn.getAttribute('data-i'))][btn.getAttribute('data-quitar-recurso')] = '';
+            renderFormularioLibros();
+        });
+    });
+    L.querySelectorAll('input[data-recurso]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const archivo = input.files && input.files[0];
+            input.value = '';
+            if (archivo) subirRecursoLibro(Number(input.getAttribute('data-i')), input.getAttribute('data-recurso'), archivo);
         });
     });
     L.querySelectorAll('input[data-libro-subir]').forEach((input) => {
@@ -2591,13 +2619,50 @@ async function subirFotosLibro(i, archivos){
         : `${subidas} foto(s) agregada(s).`) + aviso;
 }
 
+// Sube el PDF o el audio (MP3/WAV) de un libro.
+async function subirRecursoLibro(i, tipo, archivo){
+    const libro = librosFormulario[i];
+    if (!libro || !archivo) return;
+    const nombre = (archivo.name || '').toLowerCase();
+    const ext = nombre.split('.').pop();
+    const esPdf = archivo.type === 'application/pdf' || ext === 'pdf';
+    const esAudio = /^audio\/(mpeg|mp3|wav|x-wav|wave)$/.test(archivo.type) || ext === 'mp3' || ext === 'wav';
+    const estadoEl = librosModalLista.querySelector(`[data-recurso-estado="${i}"]`);
+    if ((tipo === 'pdf' && !esPdf) || (tipo === 'audio' && !esAudio)) {
+        if (estadoEl) estadoEl.textContent = tipo === 'pdf' ? 'Ese archivo no es un PDF.' : 'El audio debe ser MP3 o WAV.';
+        return;
+    }
+    const extFinal = tipo === 'pdf' ? 'pdf' : (ext === 'wav' ? 'wav' : 'mp3');
+    const tipoMime = tipo === 'pdf' ? 'application/pdf' : (extFinal === 'wav' ? 'audio/wav' : 'audio/mpeg');
+    const renombrado = new File([archivo], `libro-${tipo}-${Date.now()}.${extFinal}`, { type: tipoMime });
+    librosModalGuardar.disabled = true;
+    if (estadoEl) estadoEl.textContent = 'Subiendo... 0% (los archivos grandes pueden tardar, no cierres esta ventana)';
+    let mensaje = '';
+    try {
+        const url = await subirArchivoGrande(renombrado, (pct) => {
+            if (estadoEl) estadoEl.textContent = `Subiendo... ${Math.round(pct)}%`;
+        });
+        libro[tipo] = url;
+        mensaje = tipo === 'pdf' ? 'PDF subido. No olvides dar clic en "Guardar cambios".' : 'Audio subido. No olvides dar clic en "Guardar cambios".';
+    } catch (err) {
+        console.error('Error subiendo archivo del libro:', err);
+        mensaje = 'No se pudo subir el archivo: ' + (err && err.message ? err.message : 'intenta de nuevo.');
+    }
+    librosModalGuardar.disabled = false;
+    renderFormularioLibros();
+    const nuevo = librosModalLista.querySelector(`[data-recurso-estado="${i}"]`);
+    if (nuevo) nuevo.textContent = mensaje;
+}
+
 if (librosAdminBtn) {
     librosAdminBtn.addEventListener('click', () => {
         librosFormulario = obtenerLibrosActuales().map((l) => ({
             titulo: l.titulo || '',
             autor: l.autor || '',
             descripcion: l.descripcion || '',
-            imagenes: imagenesDeLibro(l)
+            imagenes: imagenesDeLibro(l),
+            pdf: l.pdf || '',
+            audio: l.audio || ''
         }));
         renderFormularioLibros();
         librosModal.classList.add('open');
@@ -2607,7 +2672,7 @@ if (librosModalClose) librosModalClose.addEventListener('click', () => librosMod
 if (librosModal) librosModal.addEventListener('click', (e) => { if (e.target === librosModal) librosModal.classList.remove('open'); });
 if (librosModalAgregar) {
     librosModalAgregar.addEventListener('click', () => {
-        librosFormulario.push({ imagenes: [], titulo: '', autor: '', descripcion: '' });
+        librosFormulario.push({ imagenes: [], titulo: '', autor: '', descripcion: '', pdf: '', audio: '' });
         renderFormularioLibros();
     });
 }
@@ -2615,13 +2680,15 @@ if (librosModalGuardar) {
     librosModalGuardar.addEventListener('click', async () => {
         librosModalGuardar.disabled = true;
         const datos = librosFormulario
-            .filter((l) => (l.titulo || '').trim() || l.imagenes.length)
+            .filter((l) => (l.titulo || '').trim() || l.imagenes.length || l.pdf || l.audio)
             .map((l) => ({
                 imagen: l.imagenes[0] || '',      // portada (compatibilidad)
                 imagenes: l.imagenes.slice(0, MAX_FOTOS_LIBRO),
                 titulo: (l.titulo || '').trim(),
                 autor: (l.autor || '').trim(),
-                descripcion: (l.descripcion || '').trim()
+                descripcion: (l.descripcion || '').trim(),
+                pdf: l.pdf || '',
+                audio: l.audio || ''
             }));
         const ok = await guardarContenidoEnServidor('libros', datos);
         librosModalGuardar.disabled = false;
