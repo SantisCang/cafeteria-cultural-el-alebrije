@@ -4278,3 +4278,51 @@ body.dark-mode .libro-audio span { color: #9fe05a; }
     font-family: inherit;
 }
 .libros-form-ok { color: #1d9e5b; font-weight: 700; }
+
+
+/* =====================================================
+   MENÚ MÓVIL: desplazamiento completo y enlaces siempre visibles
+   ===================================================== */
+@media (max-width: 991px) {
+    /* Que el menú desplegado se pueda deslizar hasta el final */
+    .menu .navbar {
+        max-height: calc(100vh - 84px);
+        max-height: calc(100dvh - 84px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding-bottom: 40px;
+        box-sizing: border-box;
+    }
+    #menu-toggle:checked ~ .navbar {
+        display: block;
+    }
+
+    /* Enlace tocado / seleccionado: antes era naranja sobre naranja y desaparecía */
+    .navbar a.nav-link-tocado,
+    .menu .navbar ul li a:active,
+    .menu .navbar ul li a:focus-visible {
+        color: #FFFFFF !important;
+        background-color: rgba(29, 29, 27, 0.88);
+        border-radius: 12px;
+        outline: none;
+    }
+    .menu .navbar ul li a:hover {
+        color: #FFFFFF;
+    }
+
+    /* Promociones: píldora blanca con texto naranja oscuro (visible sobre el fondo naranja) */
+    .menu .navbar ul li a.nav-promo {
+        background-color: #FFFFFF;
+        color: #b85600;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(120, 55, 0, 0.35);
+    }
+    .menu .navbar ul li a.nav-promo:hover,
+    .menu .navbar ul li a.nav-promo:active,
+    .menu .navbar ul li a.nav-promo.nav-link-tocado {
+        background-color: #1d1d1b;
+        color: #FFFFFF !important;
+    }
+}
